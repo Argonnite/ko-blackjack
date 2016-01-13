@@ -4,14 +4,15 @@ use Scalar::Util qw/looks_like_number/;
 
 
 my $nDecks = 8;
-my $cut;            # penetration
-my $nTrials;        # number of shoes to simulate
-my $spreadMin;      # limits on the betting spread
+my $cut;             # penetration
+my $nTrials;         # number of shoes to simulate
+my $spreadMin;       # limits on the betting spread
 my $spreadMax;
-my $RCmin;          # running min count reached for the shoe
-my $RCmax;          # running max count reached for the shoe
-my $rsLimit = 3;    # limit on resplits.  -1 if unlimited.
-my $spotsLimit = 2; # number of those seated
+my $RCmin;           # running min count reached for the shoe
+my $RCmax;           # running max count reached for the shoe
+my $rsLimit = 3;     # limit on resplits.  -1 if unlimited.
+my $spotsLimit = 2;  # number of those seated
+my $bjPayout = 1.5;
 
 
 
@@ -51,70 +52,101 @@ my @places;
 my @cards;
 my $bet = 1;
 for(my $i = 0; $i < $spotsLimit; ++$i) {
-    push @places,{('bet' => $bet, 'cards' => [pop @deck, pop @deck], 'pos' => $i, 'splits' => 0)};
+    push @places,{('bet' => $bet, 'cards' => [pop @deck, pop @deck], 'pos' => $i, 'splitID' => 0)};
 }
 
 
-
-#
-####testes
-#my @blah = ('as','6s','th','as');
-#print Dumper(\@blah);
-#@blah = getTotals(\@blah);
-#print Dumper(\@blah);
-#exit(0);
-#
-#
-#
-
-
-
+#print Dumper(\@places);
 my @patPlaces;
-while (scalar @places) {
-    my $hand = pop @places;
-    print Dumper($hand);
-#    print Dumper(\@places);
-    print scalar @deck . " cards remaining.\n";
+while (scalar @places) {  # decide each spot.
+    my $hand = shift @places;
     my @totals = getTotals($hand->{'cards'});
-    print Dumper(\@totals);
+
+    print "\n";
+    print Dumper($hand->{'cards'});
+    print "POS: " . $hand->{'pos'} . ", ";
+    print "SID: " . $hand->{'splitID'} . "\n";
+    print "ISPAIR: " . isPair($hand->{'cards'}) . "\n";
+    print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
+    my $bestTotal = bestTotal(\@totals);
+    print "BESTTOT: $bestTotal\n";
+    print "BINGO: " . isNatural($hand->{'cards'}) . "\n";
 }
 
 
-####sub _addIt
-#sub _addIt {
-#    my @cards = @{$_[0]};
-#    my @totals = @{$_[1]};
-#
-#    my $card = shift @cards;
-#
-#    my $rank = substr($card,0,1);
-#    print "Card is $card.\n";
-#    if($rank eq 'a') {
-#	print "It's an ace.\n";
-#    } elsif($rank eq 't') {
-#	print "It's a ten.\n";
-#    } elsif(!looks_like_number($rank)) {
-#	print "It's a ten.\n";
-#    } elsif(looks_like_number($rank)) {
-#	print "It's number.\n";
-#    } else {
-#	print "ERROR.\n";
-#    }
-#}
+
+##################################################################
+
+### sub bestTotal
+sub bestTotal {
+    my $totals = shift(@_);
+    my $bestTotal = -1;
+    foreach my $total (@{$totals}) {
+print "TOT: $total\n";
+	if($total > $bestTotal && $total < 22) {
+	    $bestTotal = $total;
+	}
+    }
+    return $bestTotal;
+ }
+
+
+###sub isBusted
+###sub isSoft
+sub isSoft {
+    my $cards = shift(@_);
+    my @cardAry = @{$cards};
+    my @totals = getTotals(\@cardAry);
+
+    my $i = 0;
+    foreach my $total (@totals) {
+	if($total < 22 && $total > 0) {
+	    ++$i;
+	}
+    }
+    if($total > 0) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+
+###sub isPair
+sub isPair {
+    my $cards = shift(@_);
+    my @cardAry = @{$cards};
+
+    if((substr($cardAry[0],0,1) == substr($cardAry[1],0,1)) && scalar(@cardAry) == 2) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+
+###sub isNatural
+sub isNatural {
+    my $cards = shift(@_);
+    my @cardAry = @{$cards};
+    my @totals = getTotals(\@cardAry);
+    if(scalar @cardAry == 2 && bestTotal(\@totals) == 21) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
 
 
 ###sub getTotals
 sub getTotals {
     my $cards = shift(@_);
     my @sums = (0);
-#    _addIt($cards,\@sums);
 
     foreach my $card (@{$cards}) {
 	my @newSums = ();
 	my $rank = substr($card,0,1);
-	print "Card is $card.\n";
 	if($rank eq 'a') {
-	    print "It's an ace.\n";
 	    foreach my $total (@sums) {  ### add ones
 		push @newSums,($total + 1);
 	    }
@@ -122,27 +154,21 @@ sub getTotals {
 		push @newSums,($total + 11);
 	    }
 	} elsif($rank eq 't') {
-	    print "It's a ten.\n";
 	    foreach my $total (@sums) {
 		push @newSums,($total + 10);
 	    }
 	} elsif(!looks_like_number($rank)) {
-	    print "It's a ten.\n";
 	    foreach my $total (@sums) {
 		push @newSums,($total + 10);
 	    }
 	} elsif(looks_like_number($rank)) {
-	    print "It's number.\n";
 	    foreach my $total (@sums) {
 		push @newSums,($total + $rank);
 	    }
 	} else {
 	    print "ERROR.\n";
 	}
-#print Dumper(\@sums);
 	@sums = @newSums;
-#print Dumper(\@sums);
-#print "YEAH\n";
     }
     return @sums;
 }
@@ -199,16 +225,10 @@ sub getTotals {
 #}
     
 
-print "BLAHHHHH\n";
-print Dumper(\@patPlaces);
 
 
 
 
-
-###sub isBusted
-###sub isSoft
-###sub isPair
 
 ####dealer's turn
 #while(total(@dealer) < 17 and soft(@dealer) and not busted(@dealer)) {
@@ -253,7 +273,7 @@ print Dumper(\@patPlaces);
 #  up  2  3  4  5  6  7  8  9  T  A
 #aa   sp sp sp sp sp sp sp sp sp sp
 #tt    s  s  s  s  s  s  s  s  s  s
-#99   sp sp sp sp sp sp sp sp  s  s
+#99   sp sp sp sp sp  s sp sp  s  s
 #88   sp sp sp sp sp sp sp sp sp sp
 #77   sp sp sp sp sp sp  h  h  h  h
 #66    h sp sp sp sp  h  h  h  h  h
