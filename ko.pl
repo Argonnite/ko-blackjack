@@ -3,7 +3,7 @@ use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
 
 
-my $nDecks = 8;
+my $nDecks = 8;      # size of shoe
 my $cut;             # penetration
 my $nTrials;         # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
@@ -15,36 +15,23 @@ my $spotsLimit = 2;  # number of those seated
 my $bjPayout = 1.5;
 
 
-
 ###prep deck
 my @deck;
 my @ranks = qw/a k q j t 9 8 7 6 5 4 3 2/;
 my @suits = qw/s h d c/;
-
-foreach my $rank (@ranks) {
-  foreach my $suit (@suits) {
-    push @deck,$rank . $suit;
-  }
+for(my $i = 0; $i < $nDecks; ++$i) {
+    foreach my $rank (@ranks) {
+	foreach my $suit (@suits) {
+	    push @deck,$rank . $suit;
+	}
+    }
 }
 @deck = shuffle @deck;
 
-
-####place bets
-#my $bet = 'a';
-#while(not looks_like_number $bet) {
-#  print "Enter bet (You have $playerChips):";
-#  $bet = <STDIN>;
-#}
-#chomp $bet;
-#$playerChips -= $bet;
-#print "Betting $bet.\n";
-#print "You have $playerChips remaining.\n";
-
-
 ###dealer's cards
 my @dealer;
-push @dealer,pop @deck;
-push @dealer,pop @deck;
+push @dealer,shift @deck;
+push @dealer,shift @deck;
 print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
 
 ###players' cards
@@ -52,30 +39,95 @@ my @places;
 my @cards;
 my $bet = 1;
 for(my $i = 0; $i < $spotsLimit; ++$i) {
-    push @places,{('bet' => $bet, 'cards' => [pop @deck, pop @deck], 'pos' => $i, 'splitID' => 0)};
+    push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0)};
 }
 
-
-#print Dumper(\@places);
+### foreach spot
 my @patPlaces;
-while (scalar @places) {  # decide each spot.
+while (scalar @places) {
     my $hand = shift @places;
     my @totals = getTotals($hand->{'cards'});
 
     print "\n";
     print Dumper($hand->{'cards'});
     print "POS: " . $hand->{'pos'} . ", ";
-    print "SID: " . $hand->{'splitID'} . "\n";
+    print "SpID: " . $hand->{'splitID'} . "\n";
     print "ISPAIR: " . isPair($hand->{'cards'}) . "\n";
     print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
     my $bestTotal = bestTotal(\@totals);
     print "BESTTOT: $bestTotal\n";
-    print "BINGO: " . isNatural($hand->{'cards'}) . "\n";
+    print "ISNATURAL: " . isNatural($hand->{'cards'}) . "\n";
+
+    my %table = ();
+    generate(\%table);
+
+    my $pRank = substr($hand->{'cards'}->[0],0,1);
+    my $dRank = substr($dealer[1],0,1);
+    if($dRank =~ /[kqjt]/) {
+	$dRank = 't';
+    }
+
+    my $todo;
+    if(isPair($hand->{'cards'})) {
+	$todo =	$table{$pRank . $pRank}{$dRank};
+	print "TODO: $todo\n";
+    }
 }
 
 
 
 ##################################################################
+
+
+### sub generate
+sub generate {
+    my $tableRef = shift(@_);
+    my @textTable;
+    push @textTable,"aa   sp sp sp sp sp sp sp sp sp sp";
+    push @textTable,"tt    s  s  s  s  s  s  s  s  s  s";
+    push @textTable,"99   sp sp sp sp sp  s sp sp  s  s";
+    push @textTable,"88   sp sp sp sp sp sp sp sp sp sp";
+    push @textTable,"77   sp sp sp sp sp sp  h  h  h  h";
+    push @textTable,"66    h sp sp sp sp  h  h  h  h  h";
+    push @textTable,"55    d  d  d  d  d  d  d  d  h  h";
+    push @textTable,"44    h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"33    h  h sp sp sp sp  h  h  h  h";
+    push @textTable,"22    h  h sp sp sp sp  h  h  h  h";
+    push @textTable,"h17    s  s  s  s  s  s  s  s  s  s";
+    push @textTable,"h16    s  s  s  s  s  h  h su su su";
+    push @textTable,"h15    s  s  s  s  s  h  h  h su  h";
+    push @textTable,"h14    s  s  s  s  s  h  h  h  h  h";
+    push @textTable,"h13    s  s  s  s  s  h  h  h  h  h";
+    push @textTable,"h12    s  s  s  s  s  h  h  h  h  h";
+    push @textTable,"11    dh dh dh dh dh dh dh dh dh  h";
+    push @textTable,"10    dh dh dh dh dh dh dh dh  h  h";
+    push @textTable," 9     h dh dh dh dh  h  h  h  h  h";
+    push @textTable," 8     h  h  h  h  h  h  h  h  h  h";
+    push @textTable," 7     h  h  h  h  h  h  h  h  h  h";
+    push @textTable," 6     h  h  h  h  h  h  h  h  h  h";
+    push @textTable," 5     h  h  h  h  h  h  h  h  h  h";
+    push @textTable," 4     h  h  h  h  h  h  h  h  h  h";
+    push @textTable," 3     h  h  h  h  h  h  h  h  h  h";
+    push @textTable," 2     h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"s19    s  s  s  s  s  s  s  s  s  s";
+    push @textTable,"s18    s ds ds ds ds  s  s  h  h  h";
+    push @textTable,"s17    h dh dh dh dh  h  h  h  h  h";
+    push @textTable,"s16    h  h dh dh dh  h  h  h  h  h";
+    push @textTable,"s15    h  h dh dh dh  h  h  h  h  h";
+    push @textTable,"s14    h  h  h dh dh  h  h  h  h  h";
+    push @textTable,"s13    h  h  h dh dh  h  h  h  h  h";
+
+    my @dUps = qw/2 3 4 5 6 7 8 9 t a/;
+    foreach my $line (@textTable) {
+	my @actions = split(/\s+/,$line);
+	my $pHand = shift @actions;
+	for(my $i; $i < 10; ++$i) {
+	    $tableRef->{$pHand}->{$dUps[$i]} = $actions[$i];
+	}
+    }
+}
+
+
 
 ### sub bestTotal
 sub bestTotal {
@@ -104,7 +156,7 @@ sub isSoft {
 	    ++$i;
 	}
     }
-    if($total > 0) {
+    if($i > 0) {
 	return 1;
     } else {
 	return 0;
@@ -117,7 +169,17 @@ sub isPair {
     my $cards = shift(@_);
     my @cardAry = @{$cards};
 
-    if((substr($cardAry[0],0,1) == substr($cardAry[1],0,1)) && scalar(@cardAry) == 2) {
+    my $rank0 = substr($cardAry[0],0,1);
+    my $rank1 = substr($cardAry[1],0,1);
+
+    if($rank0 =~ /[kqjt]/) {
+	$rank0 = 't';
+    }
+    if($rank1 =~ /[kqjt]/) {
+	$rank1 = 't';
+    }
+
+    if($rank0 eq $rank1 && scalar(@cardAry) == 2) {
 	return 1;
     } else {
 	return 0;
@@ -300,3 +362,17 @@ sub getTotals {
 #s15    h  h dh dh dh  h  h  h  h  h
 #s14    h  h  h dh dh  h  h  h  h  h
 #s13    h  h  h dh dh  h  h  h  h  h
+
+
+
+
+####place bets
+#my $bet = 'a';
+#while(not looks_like_number $bet) {
+#  print "Enter bet (You have $playerChips):";
+#  $bet = <STDIN>;
+#}
+#chomp $bet;
+#$playerChips -= $bet;
+#print "Betting $bet.\n";
+#print "You have $playerChips remaining.\n";
