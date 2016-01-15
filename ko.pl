@@ -13,6 +13,8 @@ my $RCmax;           # running max count reached for the shoe
 my $rsLimit = 3;     # limit on resplits.  -1 if unlimited.
 my $spotsLimit = 2;  # number of those seated
 my $bjPayout = 1.5;
+my $esAllowed = 0;   # surrender flags
+my $lsAllowed = 0;
 
 
 ###prep deck
