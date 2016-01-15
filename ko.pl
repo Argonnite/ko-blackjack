@@ -42,7 +42,7 @@ for(my $i = 0; $i < $spotsLimit; ++$i) {
     push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0)};
 }
 
-### foreach spot
+###players' hits
 my @patPlaces;
 while (scalar @places) {
     my $hand = shift @places;
@@ -51,7 +51,7 @@ while (scalar @places) {
     print "\n";
     print Dumper($hand->{'cards'});
     print "POS: " . $hand->{'pos'} . ", ";
-    print "SpID: " . $hand->{'splitID'} . "\n";
+    print "SplID: " . $hand->{'splitID'} . "\n";
     print "ISPAIR: " . isPair($hand->{'cards'}) . "\n";
     print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
     my $bestTotal = bestTotal(\@totals);
@@ -66,12 +66,39 @@ while (scalar @places) {
     if($dRank =~ /[kqjt]/) {
 	$dRank = 't';
     }
+    print "DRANK: $dRank\n";
 
-    my $todo;
-    if(isPair($hand->{'cards'})) {
-	$todo =	$table{$pRank . $pRank}{$dRank};
-	print "TODO: $todo\n";
+
+    my $action;
+    if(isNatural($hand->{'cards'})) { #bj?
+	$action = "bj";
+    } elsif(isPair($hand->{'cards'})) { #split?
+	$action = $table{$pRank . $pRank}{$dRank};
+    } elsif(isSoft($hand->{'cards'})) { #soft?
+	if($bestTotal >= 19) {
+	    $action = 's';
+	} else {
+	    $action = $table{'s' . $bestTotal}{$dRank};
+	}
+    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
+
+
+	if($bestTotal >= 17) {
+	    $action = 's';
+	} else {
+	    if(not exists $table{$bestTotal}{$dRank}) {
+		$action = $table{"h" . $bestTotal}{$dRank};
+	    } else {
+		$action = $table{$bestTotal}{$dRank};
+	    }
+	}
+
+
+    } else {
+	print "ERROR:  Table lookup.\n";
+	exit(0);
     }
+    print "ACTION: $action\n";
 }
 
 
@@ -119,6 +146,7 @@ sub generate {
 
     my @dUps = qw/2 3 4 5 6 7 8 9 t a/;
     foreach my $line (@textTable) {
+	$line =~ s/^\s+//;  # leading whitespace messes up below line.
 	my @actions = split(/\s+/,$line);
 	my $pHand = shift @actions;
 	for(my $i; $i < 10; ++$i) {
@@ -143,7 +171,6 @@ print "TOT: $total\n";
  }
 
 
-###sub isBusted
 ###sub isSoft
 sub isSoft {
     my $cards = shift(@_);
@@ -156,7 +183,7 @@ sub isSoft {
 	    ++$i;
 	}
     }
-    if($i > 0) {
+    if($i > 1) {
 	return 1;
     } else {
 	return 0;
@@ -234,6 +261,13 @@ sub getTotals {
     }
     return @sums;
 }
+
+
+###sub isBusted
+
+
+
+
 
 #    my $key = "h";
 #    while ($key eq "h" or $key eq "p") {
