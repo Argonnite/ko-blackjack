@@ -2,6 +2,9 @@ use List::Util qw/shuffle sum/;
 use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
 
+#FIXME: handle deck runouts
+#FIXME: action granularities and flags
+
 
 my $nDecks = 8;      # size of shoe
 my $cut;             # penetration
@@ -15,6 +18,13 @@ my $spotsLimit = 2;  # number of those seated
 my $bjPayout = 1.5;
 my $esAllowed = 0;   # surrender flags
 my $lsAllowed = 0;
+my $rsa;             # resplit aces allowed
+my $rs;              # resplit any allowed
+my $rsa3;            # resplit aces once
+my $rs3 = 1;         # replit once
+my $esAllowed;       # early surrender
+my $lsAllowed;       # late surrender
+my $dasAllowed;      # doubling after splitting
 
 
 ###prep deck
@@ -43,14 +53,17 @@ my $bet = 1;
 for(my $i = 0; $i < $spotsLimit; ++$i) {
     push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0)};
 }
+print "INITPLACES\n";
+print Dumper(\@places);
 
 ###players' hits
 my @patPlaces;
+my @bustedPlaces;
 while (scalar @places) {
     my $hand = shift @places;
     my @totals = getTotals($hand->{'cards'});
 
-    print "\n";
+    print "WORKING ON:\n";
     print Dumper($hand->{'cards'});
     print "POS: " . $hand->{'pos'} . ", ";
     print "SplID: " . $hand->{'splitID'} . "\n";
@@ -64,6 +77,10 @@ while (scalar @places) {
     generate(\%table);
 
     my $pRank = substr($hand->{'cards'}->[0],0,1);
+    if($pRank =~ /[kqjt]/) {
+	$pRank = 't';
+    }
+    print "PRANK: $pRank\n";
     my $dRank = substr($dealer[1],0,1);
     if($dRank =~ /[kqjt]/) {
 	$dRank = 't';
@@ -101,6 +118,63 @@ while (scalar @places) {
 	exit(0);
     }
     print "ACTION: $action\n";
+
+
+
+
+    ### execute player actions.
+    if($action eq 'sp') { ### split
+      print "SPLITTING\n";
+      my %newSpot = %hand;
+      my $card0 = $hand->{'cards'}->[0];
+      my $card1 = $hand->{'cards'}->[1];
+
+      $hand->{'cards'} = [$card0, shift @deck];
+      $newSpot->{'cards'} = [$card1, shift @deck];
+
+      $newSpot->{'bet'} = $hand->{'bet'};
+      $newSpot->{'pos'} = $hand->{'pos'};
+      $newSpot->{'splitID'} = $hand->{'splitID'} + 1;
+
+      push @places,$hand;
+      push @places,$newSpot;
+
+    } elsif($action eq 's') { ### stand pat
+      print "PAT\n";
+      push @patPlaces,$hand;
+    } elsif($action eq 'dh' or $action eq 'd' or $action eq 'ds') { ### double down
+      print "DOUBLING\n";
+      $hand->{'bet'} = $hand->{'bet'} * 2;
+      push @{$hand->{'cards'}},shift @deck;
+      if(isBusted($hand->{'cards'})) { ### busted
+	push @bustedPlaces,$hand;
+      } else {
+	push @patPlaces,$hand;
+      }
+    } elsif($action eq 'su' or $action eq 'h') { ### hitting
+      print "HITTING\n";
+      push @{$hand->{'cards'}},shift @deck;
+      if(isBusted($hand->{'cards'})) { ### busted
+	push @bustedPlaces,$hand;
+      } else {
+	unshift @places,$hand;
+      }
+    } elsif($action eq 'bj') { ### blackjack
+      push @patPlaces,$hand;
+    } else {
+      print "ERROR: unfound action $action\n";
+      exit(0);
+    }
+
+    print "---PAUSE---\n";
+    print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+    my $key = <>;
+    print "PLACES\n";
+    print Dumper(\@places);
+    print "BUSTEDPLACES\n";
+    print Dumper(\@bustedPlaces);
+    print "PATPLACES\n";
+    print Dumper(\@patPlaces);
 }
 
 
@@ -164,7 +238,6 @@ sub bestTotal {
     my $totals = shift(@_);
     my $bestTotal = -1;
     foreach my $total (@{$totals}) {
-print "TOT: $total\n";
 	if($total > $bestTotal && $total < 22) {
 	    $bestTotal = $total;
 	}
@@ -266,10 +339,21 @@ sub getTotals {
 
 
 ###sub isBusted
+sub isBusted {
+    my $cards = shift(@_);
+    my @totals = getTotals($cards);
+print "ISBUSTEDTEST\n";
+    print Dumper($cards);
+    print Dumper(\@totals);
+    my $bestTot = bestTotal(\@totals);
+    print "ISBUSTEDBESTTOT $bestTot\n";
 
-
-
-
+    if($bestTot == -1) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 
 #    my $key = "h";
 #    while ($key eq "h" or $key eq "p") {
