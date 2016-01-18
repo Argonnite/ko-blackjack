@@ -4,6 +4,7 @@ use Scalar::Util qw/looks_like_number/;
 
 #FIXME: handle deck runouts
 #FIXME: action granularities and flags
+#FIXME: make sure doubling happens only on 2 cards
 
 
 my $nDecks = 8;      # size of shoe
