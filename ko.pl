@@ -28,6 +28,7 @@ my $rs3 = 1;         # replit once
 my $esAllowed;       # early surrender
 my $lsAllowed;       # late surrender
 my $dasAllowed;      # doubling after splitting
+my $h17 = 1;         # dealer hits soft 17
 
 
 ###prep deck
@@ -178,8 +179,34 @@ while (scalar @places) {
     print Dumper(\@bustedPlaces);
     print "PATPLACES\n";
     print Dumper(\@patPlaces);
+
+
 }
 
+
+### dealer actions
+my @dealerTotals = getTotals(\@dealer);
+my $dealerBest = bestTotal(\@dealerTotals);
+print "Dealer: " . join(' ',@dealer) . "\n";
+print "DealerTots: " . Dumper(\@dealerTotals);
+print "DealerBest: $dealerBest\n";
+
+
+while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
+    print "---DEALER PAUSE---\n";
+    my $key = <>;
+    push @dealer,shift @deck;
+    @dealerTotals = getTotals(\@dealer);
+    $dealerBest = bestTotal(\@dealerTotals);
+    print "DEALER HITTING.\n";
+    print "DEALER: " . join(' ',@dealer) . "\n";
+    print "DEALERTOTS: " . Dumper(\@dealerTotals);
+    print "DEALERBEST: $dealerBest\n";
+}
+
+
+
+### collections, payouts, and discards
 
 
 ##################################################################
@@ -345,11 +372,7 @@ sub getTotals {
 sub isBusted {
     my $cards = shift(@_);
     my @totals = getTotals($cards);
-print "ISBUSTEDTEST\n";
-    print Dumper($cards);
-    print Dumper(\@totals);
     my $bestTot = bestTotal(\@totals);
-    print "ISBUSTEDBESTTOT $bestTot\n";
 
     if($bestTot == -1) {
       return 1;
