@@ -17,6 +17,7 @@ for(my $i = 0; $i < $nTrials; ++$i) {
   if(int(rand(64)) < 10) { ### it's a seven
     push @sevenStreaks,$i;
     --$runningSum;
+    --$runningSum;
     $bank = $bank - 6;
     if($bank < $worstBank) {
       $worstBank = $bank;
