@@ -49,3 +49,4 @@ print "BANK: $bank\n";
 print "WORSTBANK: $worstBank\n";
 print "NTRIALS: $nTrials\n";
 print "(" . join(',',@sevenStreaks) . ")\n";
+print "NSEVENS: " . scalar @sevenStreaks . "\n";
