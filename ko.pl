@@ -6,6 +6,8 @@ use Scalar::Util qw/looks_like_number/;
 #FIXME: action granularities and flags
 #FIXME: make sure doubling happens only on 2 cards
 
+#seat
+#pen
 
 my $nDecks = 8;      # size of shoe
 my $cut;             # penetration
