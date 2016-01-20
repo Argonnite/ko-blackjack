@@ -47,23 +47,33 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	}
     }
     @deck = shuffle @deck;
+    my @discards = ();
+    my $runningCount = 0;
 
 
     while(scalar @deck > $fPenetrationCard) { #deal a round
+
+	### before betting actions
+	my $runningCountAtStartOfHand = $runningCount;
+	print "IRC: $runningCountAtStartOfHand\n";
 
         ### dealer's cards
 	my @dealer;
 	push @dealer,shift @deck;
 	push @dealer,shift @deck;
-	print "REMAINING: " . scalar @deck . "\n";
 	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+	$runningCount += KOVal($dealer[1]);
 
         ### players' cards
 	my @places;
 	my @cards;
 	my $bet = 1;
 	for(my $i = 0; $i < $spotsLimit; ++$i) {
-	    push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0)};
+	    my $initCard0 = shift @deck;
+	    $runningCount += KOVal($initCard0);
+	    my $initCard1 = shift @deck;
+	    $runningCount += KOVal($initCard1);
+	    push @places,{('bet' => $bet, 'cards' => [$initCard0, $initCard1], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand)};
 	}
 	if($DEBUG) {
 	    print "INITPLACES\n";
@@ -147,8 +157,12 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		my $card0 = $hand->{'cards'}->[0];
 		my $card1 = $hand->{'cards'}->[1];
 
-		$hand->{'cards'} = [$card0, shift @deck];
-		$newSpot->{'cards'} = [$card1, shift @deck];
+		my $popCard0 = shift @deck;
+		$runningCount += KOVal($popCard0);
+		my $popCard1 = shift @deck;
+		$runningCount += KOVal($popCard1);
+		$hand->{'cards'} = [$card0, $popCard0];
+		$newSpot->{'cards'} = [$card1, $popCard1];
 
 		$newSpot->{'bet'} = $hand->{'bet'};
 		$newSpot->{'pos'} = $hand->{'pos'};
@@ -167,8 +181,11 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		    print "DOUBLING\n";
 		}
 		$hand->{'bet'} = $hand->{'bet'} * 2;
-		push @{$hand->{'cards'}},shift @deck;
+		my $doubleCard = shift @deck;
+		$runningCount += KOVal($doubleCard);
+		push @{$hand->{'cards'}},$doubleCard;
 		if(isBusted($hand->{'cards'})) { ### busted
+		    $hand->{'busted'} = "yes";
 		    push @bustedPlaces,$hand;
 		} else {
 		    push @patPlaces,$hand;
@@ -177,8 +194,11 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		if($DEBUG) {
 		    print "HITTING\n";
 		}
-		push @{$hand->{'cards'}},shift @deck;
+		my $hitCard = shift @deck;
+		$runningCount += KOVal($hitCard);
+		push @{$hand->{'cards'}},$hitCard;
 		if(isBusted($hand->{'cards'})) { ### busted
+		    $hand->{'busted'} = "yes";
 		    push @bustedPlaces,$hand;
 		} else {
 		    unshift @places,$hand;
@@ -208,6 +228,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	my @dealerTotals = getTotals(\@dealer);
 	my $dealerBest = bestTotal(\@dealerTotals);
 	print "Dealer: " . join(' ',@dealer) . "\n";
+	$runningCount += KOVal($dealer[0]);
 	print "DealerTots: " . Dumper(\@dealerTotals);
 	print "DealerBest: $dealerBest\n";
 
@@ -215,7 +236,9 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
 	    print "---DEALER PAUSE---\n";
 	    my $key = <>;
-	    push @dealer,shift @deck;
+	    my $dealerCard = shift @deck;
+	    $runningCount += KOVal($dealerCard);
+	    push @dealer,$dealerCard;
 	    @dealerTotals = getTotals(\@dealer);
 	    $dealerBest = bestTotal(\@dealerTotals);
 	    print "DEALER HITTING.\n";
@@ -225,11 +248,47 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	}
 
 
+        ### collections, payouts, and discards
+	print "BLAHBLAHBLAH\n";
+	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+	print "PLACES\n";
+	print Dumper(\@places);
+	print "BUSTEDPLACES\n";
+	print Dumper(\@bustedPlaces);
+	print "PATPLACES\n";
+	print Dumper(\@patPlaces);
+	foreach my $patHand (@patPlaces) {
+#FIXME: busted dealer.
+	    my $pTot = bestTotal(getTotals(@{$patHand->{'cards'}}));
+	    if($pTot > $dealerBest) {
+		print "POS: $patHand->{'pos'} wins.\n";
+	    } elsif($pTot < $dealerBest) {
+		print "POS: $patHand->{'pos'} loses.\n";
+	    } else {
+		print "POS: $patHand->{'pos'} pushes.\n";
+	    }
+	}
+	print "REMAINING: " . scalar @deck . "\n";
+	print "CUTPOINT: $fPenetrationCard\n";
+	print "RC: $runningCount\n";
+	exit(0);
 
-### collections, payouts, and discards
     }
 }
 ##################################################################
+
+### sub KOVal
+sub KOVal {
+    my $card = shift(@_);
+    my $rank = substr($card,0,1);
+    if($rank =~ /[akqjt]/) {
+	return -1;
+    } elsif ($rank > 1 and $rank < 8) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
 
 
 ### sub generate
