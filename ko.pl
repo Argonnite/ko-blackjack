@@ -118,15 +118,25 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	    }
 
 
+	    $hand->{'dInit'} = $dRank;
 	    my $action;
 	    if(isNatural($hand->{'cards'})) { #bj?
 		$action = "bj";
 	    } elsif(isPair($hand->{'cards'})) { #split?
+		if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
+		    $hand->{'pInit'} = $pRank . $pRank;
+		}
 		$action = $table{$pRank . $pRank}{$dRank};
 	    } elsif(isSoft($hand->{'cards'})) { #soft?
 		if($bestTotal >= 19) {
+		    if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
+			$hand->{'pInit'} = 's19';
+		    }
 		    $action = 's';
 		} else {
+		    if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
+			$hand->{'pInit'} = 's' . $bestTotal;
+		    }
 		    $action = $table{'s' . $bestTotal}{$dRank};
 		}
 	    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
@@ -134,8 +144,14 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		    $action = 's';
 		} else {
 		    if(not exists $table{$bestTotal}{$dRank}) {
+			if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
+			    $hand->{'pInit'} = "h" . $bestTotal;
+			}
 			$action = $table{"h" . $bestTotal}{$dRank};
 		    } else {
+			if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
+			    $hand->{'pInit'} = $bestTotal;
+			}
 			$action = $table{$bestTotal}{$dRank};
 		    }
 		}
@@ -255,19 +271,41 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	print Dumper(\@places);
 	print "BUSTEDPLACES\n";
 	print Dumper(\@bustedPlaces);
-	print "PATPLACES\n";
-	print Dumper(\@patPlaces);
-	foreach my $patHand (@patPlaces) {
-#FIXME: busted dealer.
-	    my $pTot = bestTotal(getTotals(@{$patHand->{'cards'}}));
-	    if($pTot > $dealerBest) {
-		print "POS: $patHand->{'pos'} wins.\n";
-	    } elsif($pTot < $dealerBest) {
-		print "POS: $patHand->{'pos'} loses.\n";
-	    } else {
-		print "POS: $patHand->{'pos'} pushes.\n";
+
+#FIXME: naturals
+#FIXME: pushing naturals 
+#FIXME: split then naturals?
+
+	### determine winners/losers
+	if(isBusted(\@dealer)) {
+	    foreach my $patHand (@patPlaces) {
+		if(isNatural($patHand->{'cards'})) {
+		    $patHand->{'won'} = 1.5;
+		} else {
+		    $patHand->{'won'} = 1;
+		}
+	    }
+	} elsif(isNatural(\@dealer)) {
+	} else {
+	    foreach my $patHand (@patPlaces) {
+		my $pTot = bestTotal(getTotals(@{$patHand->{'cards'}}));
+		if($pTot > $dealerBest) {
+		    if(isNatural($patHand->{'cards'})) {
+			$patHand->{'won'} = 1.5;
+		    } else {
+			$patHand->{'won'} = 1;
+		    }
+		} elsif($pTot < $dealerBest) {
+		    $patHand->{'lost'} = 1;
+		} else {
+		    $patHand->{'pushed'} = "yes";
+		}
 	    }
 	}
+	print "PATPLACES\n";
+	print Dumper(\@patPlaces);
+
+
 	print "REMAINING: " . scalar @deck . "\n";
 	print "CUTPOINT: $fPenetrationCard\n";
 	print "RC: $runningCount\n";
