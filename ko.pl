@@ -2,16 +2,16 @@ use List::Util qw/shuffle sum/;
 use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
 
+my $DEBUG = 1;
+
 #FIXME: handle deck runouts
 #FIXME: action granularities and flags
 #FIXME: make sure doubling happens only on 2 cards
 
-#seat
-#pen
 
 my $nDecks = 8;      # size of shoe
-my $cut;             # penetration
-my $nTrials;         # number of shoes to simulate
+my $cut = 1;         # penetration in number of decks unseen
+my $nShoesToRun = 5; # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
 my $spreadMax;
 my $RCmin;           # running min count reached for the shoe
@@ -31,184 +31,204 @@ my $dasAllowed;      # doubling after splitting
 my $h17 = 1;         # dealer hits soft 17
 
 
-###prep deck
-my @deck;
-my @ranks = qw/a k q j t 9 8 7 6 5 4 3 2/;
-my @suits = qw/s h d c/;
-for(my $i = 0; $i < $nDecks; ++$i) {
-    foreach my $rank (@ranks) {
-	foreach my $suit (@suits) {
-	    push @deck,$rank . $suit;
-	}
-    }
-}
-@deck = shuffle @deck;
 
-###dealer's cards
-my @dealer;
-push @dealer,shift @deck;
-push @dealer,shift @deck;
-print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
-###players' cards
-my @places;
-my @cards;
-my $bet = 1;
-for(my $i = 0; $i < $spotsLimit; ++$i) {
-    push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0)};
-}
-print "INITPLACES\n";
-print Dumper(\@places);
-
-###players' hits
-my @patPlaces;
-my @bustedPlaces;
-while (scalar @places) {
-    my $hand = shift @places;
-    my @totals = getTotals($hand->{'cards'});
-
-    print "WORKING ON:\n";
-    print Dumper($hand->{'cards'});
-    print "POS: " . $hand->{'pos'} . ", ";
-    print "SplID: " . $hand->{'splitID'} . "\n";
-    print "ISPAIR: " . isPair($hand->{'cards'}) . "\n";
-    print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
-    my $bestTotal = bestTotal(\@totals);
-    print "BESTTOT: $bestTotal\n";
-    print "ISNATURAL: " . isNatural($hand->{'cards'}) . "\n";
-
-    my %table = ();
-    generate(\%table);
-
-    my $pRank = substr($hand->{'cards'}->[0],0,1);
-    if($pRank =~ /[kqjt]/) {
-	$pRank = 't';
-    }
-    print "PRANK: $pRank\n";
-    my $dRank = substr($dealer[1],0,1);
-    if($dRank =~ /[kqjt]/) {
-	$dRank = 't';
-    }
-    print "DRANK: $dRank\n";
-
-
-    my $action;
-    if(isNatural($hand->{'cards'})) { #bj?
-	$action = "bj";
-    } elsif(isPair($hand->{'cards'})) { #split?
-	$action = $table{$pRank . $pRank}{$dRank};
-    } elsif(isSoft($hand->{'cards'})) { #soft?
-	if($bestTotal >= 19) {
-	    $action = 's';
-	} else {
-	    $action = $table{'s' . $bestTotal}{$dRank};
-	}
-    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
-
-
-	if($bestTotal >= 17) {
-	    $action = 's';
-	} else {
-	    if(not exists $table{$bestTotal}{$dRank}) {
-		$action = $table{"h" . $bestTotal}{$dRank};
-	    } else {
-		$action = $table{$bestTotal}{$dRank};
+    ### prep deck
+    my $fPenetrationCard = 52.0 * $cut; # when shoe becomes smaller than this, reshuffle.
+    my @deck;
+    my @ranks = qw/a k q j t 9 8 7 6 5 4 3 2/;
+    my @suits = qw/s h d c/;
+    for(my $i = 0; $i < $nDecks; ++$i) {
+	foreach my $rank (@ranks) {
+	    foreach my $suit (@suits) {
+		push @deck,$rank . $suit;
 	    }
 	}
-
-
-    } else {
-	print "ERROR:  Table lookup.\n";
-	exit(0);
     }
-    print "ACTION: $action\n";
+    @deck = shuffle @deck;
 
 
+    while(scalar @deck > $fPenetrationCard) { #deal a round
+
+        ### dealer's cards
+	my @dealer;
+	push @dealer,shift @deck;
+	push @dealer,shift @deck;
+	print "REMAINING: " . scalar @deck . "\n";
+	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+
+        ### players' cards
+	my @places;
+	my @cards;
+	my $bet = 1;
+	for(my $i = 0; $i < $spotsLimit; ++$i) {
+	    push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0)};
+	}
+	if($DEBUG) {
+	    print "INITPLACES\n";
+	    print Dumper(\@places);
+	}
+
+        ### players' hits
+	my @patPlaces;
+	my @bustedPlaces;
+	while (scalar @places) {
+	    my $hand = shift @places;
+	    my @totals = getTotals($hand->{'cards'});
+	    my $bestTotal = bestTotal(\@totals);
+
+	    if($DEBUG) {
+		print "WORKING ON:\n";
+		print Dumper($hand->{'cards'});
+		print "POS: " . $hand->{'pos'} . ", ";
+		print "SplID: " . $hand->{'splitID'} . "\n";
+		print "ISPAIR: " . isPair($hand->{'cards'}) . "\n";
+		print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
+		print "BESTTOT: $bestTotal\n";
+		print "ISNATURAL: " . isNatural($hand->{'cards'}) . "\n";
+	    }
+
+	    my %table = ();
+	    generate(\%table);
+
+	    my $pRank = substr($hand->{'cards'}->[0],0,1);
+	    if($pRank =~ /[kqjt]/) {
+		$pRank = 't';
+	    }
+	    if($DEBUG) {
+		print "PRANK: $pRank\n";
+	    }
+	    my $dRank = substr($dealer[1],0,1);
+	    if($dRank =~ /[kqjt]/) {
+		$dRank = 't';
+	    }
+	    if($DEBUG) {
+		print "DRANK: $dRank\n";
+	    }
 
 
-    ### execute player actions.
-    if($action eq 'sp') { ### split
-      print "SPLITTING\n";
-      my %newSpot = %hand;
-      my $card0 = $hand->{'cards'}->[0];
-      my $card1 = $hand->{'cards'}->[1];
-
-      $hand->{'cards'} = [$card0, shift @deck];
-      $newSpot->{'cards'} = [$card1, shift @deck];
-
-      $newSpot->{'bet'} = $hand->{'bet'};
-      $newSpot->{'pos'} = $hand->{'pos'};
-      $newSpot->{'splitID'} = $hand->{'splitID'} + 1;
-
-      push @places,$hand;
-      push @places,$newSpot;
-
-    } elsif($action eq 's') { ### stand pat
-      print "PAT\n";
-      push @patPlaces,$hand;
-    } elsif($action eq 'dh' or $action eq 'd' or $action eq 'ds') { ### double down
-      print "DOUBLING\n";
-      $hand->{'bet'} = $hand->{'bet'} * 2;
-      push @{$hand->{'cards'}},shift @deck;
-      if(isBusted($hand->{'cards'})) { ### busted
-	push @bustedPlaces,$hand;
-      } else {
-	push @patPlaces,$hand;
-      }
-    } elsif($action eq 'su' or $action eq 'h') { ### hitting
-      print "HITTING\n";
-      push @{$hand->{'cards'}},shift @deck;
-      if(isBusted($hand->{'cards'})) { ### busted
-	push @bustedPlaces,$hand;
-      } else {
-	unshift @places,$hand;
-      }
-    } elsif($action eq 'bj') { ### blackjack
-      push @patPlaces,$hand;
-    } else {
-      print "ERROR: unfound action $action\n";
-      exit(0);
-    }
-
-    print "---PAUSE---\n";
-    print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
-    my $key = <>;
-    print "PLACES\n";
-    print Dumper(\@places);
-    print "BUSTEDPLACES\n";
-    print Dumper(\@bustedPlaces);
-    print "PATPLACES\n";
-    print Dumper(\@patPlaces);
+	    my $action;
+	    if(isNatural($hand->{'cards'})) { #bj?
+		$action = "bj";
+	    } elsif(isPair($hand->{'cards'})) { #split?
+		$action = $table{$pRank . $pRank}{$dRank};
+	    } elsif(isSoft($hand->{'cards'})) { #soft?
+		if($bestTotal >= 19) {
+		    $action = 's';
+		} else {
+		    $action = $table{'s' . $bestTotal}{$dRank};
+		}
+	    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
+		if($bestTotal >= 17) {
+		    $action = 's';
+		} else {
+		    if(not exists $table{$bestTotal}{$dRank}) {
+			$action = $table{"h" . $bestTotal}{$dRank};
+		    } else {
+			$action = $table{$bestTotal}{$dRank};
+		    }
+		}
+	    } else {
+		print "ERROR:  Table lookup.\n";
+		exit(0);
+	    }
+	    if($DEBUG) {
+		print "ACTION: $action\n";
+	    }
 
 
-}
+	    ### execute player actions.
+	    if($action eq 'sp') { ### split
+		if($DEBUG) {
+		    print "SPLITTING\n";
+		}
+		my %newSpot = %hand;
+		my $card0 = $hand->{'cards'}->[0];
+		my $card1 = $hand->{'cards'}->[1];
+
+		$hand->{'cards'} = [$card0, shift @deck];
+		$newSpot->{'cards'} = [$card1, shift @deck];
+
+		$newSpot->{'bet'} = $hand->{'bet'};
+		$newSpot->{'pos'} = $hand->{'pos'};
+		$newSpot->{'splitID'} = $hand->{'splitID'} + 1;
+		
+		push @places,$hand;
+		push @places,$newSpot;
+
+	    } elsif($action eq 's') { ### stand pat
+		if($DEBUG) {
+		    print "PAT\n";
+		}
+		push @patPlaces,$hand;
+	    } elsif($action eq 'dh' or $action eq 'd' or $action eq 'ds') { ### double down
+		if($DEBUG) {
+		    print "DOUBLING\n";
+		}
+		$hand->{'bet'} = $hand->{'bet'} * 2;
+		push @{$hand->{'cards'}},shift @deck;
+		if(isBusted($hand->{'cards'})) { ### busted
+		    push @bustedPlaces,$hand;
+		} else {
+		    push @patPlaces,$hand;
+		}
+	    } elsif($action eq 'su' or $action eq 'h') { ### hitting
+		if($DEBUG) {
+		    print "HITTING\n";
+		}
+		push @{$hand->{'cards'}},shift @deck;
+		if(isBusted($hand->{'cards'})) { ### busted
+		    push @bustedPlaces,$hand;
+		} else {
+		    unshift @places,$hand;
+		}
+	    } elsif($action eq 'bj') { ### blackjack
+		push @patPlaces,$hand;
+	    } else {
+		print "ERROR: unfound action $action\n";
+		exit(0);
+	    }
+
+	    print "---PAUSE---\n";
+	    print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+	    my $key = <>;
+	    print "PLACES\n";
+	    print Dumper(\@places);
+	    print "BUSTEDPLACES\n";
+	    print Dumper(\@bustedPlaces);
+	    print "PATPLACES\n";
+	    print Dumper(\@patPlaces);
 
 
-### dealer actions
-my @dealerTotals = getTotals(\@dealer);
-my $dealerBest = bestTotal(\@dealerTotals);
-print "Dealer: " . join(' ',@dealer) . "\n";
-print "DealerTots: " . Dumper(\@dealerTotals);
-print "DealerBest: $dealerBest\n";
+	}
 
 
-while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
-    print "---DEALER PAUSE---\n";
-    my $key = <>;
-    push @dealer,shift @deck;
-    @dealerTotals = getTotals(\@dealer);
-    $dealerBest = bestTotal(\@dealerTotals);
-    print "DEALER HITTING.\n";
-    print "DEALER: " . join(' ',@dealer) . "\n";
-    print "DEALERTOTS: " . Dumper(\@dealerTotals);
-    print "DEALERBEST: $dealerBest\n";
-}
+        ### dealer actions
+	my @dealerTotals = getTotals(\@dealer);
+	my $dealerBest = bestTotal(\@dealerTotals);
+	print "Dealer: " . join(' ',@dealer) . "\n";
+	print "DealerTots: " . Dumper(\@dealerTotals);
+	print "DealerBest: $dealerBest\n";
+
+
+	while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
+	    print "---DEALER PAUSE---\n";
+	    my $key = <>;
+	    push @dealer,shift @deck;
+	    @dealerTotals = getTotals(\@dealer);
+	    $dealerBest = bestTotal(\@dealerTotals);
+	    print "DEALER HITTING.\n";
+	    print "DEALER: " . join(' ',@dealer) . "\n";
+	    print "DEALERTOTS: " . Dumper(\@dealerTotals);
+	    print "DEALERBEST: $dealerBest\n";
+	}
 
 
 
 ### collections, payouts, and discards
-
-
+    }
+}
 ##################################################################
 
 
