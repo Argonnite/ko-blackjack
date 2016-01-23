@@ -21,14 +21,18 @@ my $spotsLimit = 2;  # number of those seated
 my $bjPayout = 1.5;
 my $esAllowed = 0;   # surrender flags
 my $lsAllowed = 0;
-my $rsa;             # resplit aces allowed
-my $rs;              # resplit any allowed
-my $rsa3;            # resplit aces once
-my $rs3 = 1;         # replit once
+my $rsa = 0;         # resplit aces allowed
+my $rs = 0;          # resplit any allowed
+my $rsa3 = 1;        # resplit aces once
+my $rs3 = 1;         # resplit once more
 my $esAllowed;       # early surrender
 my $lsAllowed;       # late surrender
 my $dasAllowed;      # doubling after splitting
 my $h17 = 1;         # dealer hits soft 17
+
+
+my %table = ();
+generate(\%table);
 
 
 
@@ -53,7 +57,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
     while(scalar @deck > $fPenetrationCard) { #deal a round
 
-	### before betting actions
+	### IRC before dealing round
 	my $runningCountAtStartOfHand = $runningCount;
 	print "IRC: $runningCountAtStartOfHand\n";
 
@@ -62,18 +66,15 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	push @dealer,shift @deck;
 	push @dealer,shift @deck;
 	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
-	$runningCount += KOVal($dealer[1]);
 
         ### players' cards
 	my @places;
 	my @cards;
 	my $bet = 1;
+	my @splitsCnt;
 	for(my $i = 0; $i < $spotsLimit; ++$i) {
-	    my $initCard0 = shift @deck;
-	    $runningCount += KOVal($initCard0);
-	    my $initCard1 = shift @deck;
-	    $runningCount += KOVal($initCard1);
-	    push @places,{('bet' => $bet, 'cards' => [$initCard0, $initCard1], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand)};
+	    push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand)};
+	    $splitsCnt[$i] = 0;
 	}
 	if($DEBUG) {
 	    print "INITPLACES\n";
@@ -99,9 +100,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		print "ISNATURAL: " . isNatural($hand->{'cards'}) . "\n";
 	    }
 
-	    my %table = ();
-	    generate(\%table);
-
 	    my $pRank = substr($hand->{'cards'}->[0],0,1);
 	    if($pRank =~ /[kqjt]/) {
 		$pRank = 't';
@@ -118,25 +116,61 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	    }
 
 
-	    $hand->{'dInit'} = $dRank;
+	    ## lookup player actions.
 	    my $action;
 	    if(isNatural($hand->{'cards'})) { #bj?
 		$action = "bj";
 	    } elsif(isPair($hand->{'cards'})) { #split?
-		if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
-		    $hand->{'pInit'} = $pRank . $pRank;
+#FIXME: test these branches.
+		if($pRank eq 'a') {  # ace splits
+		    if($splitsCnt[$hand->{'pos'}] == 0) { # the original aces
+			$action = $table{$pRank . $pRank}{$dRank};
+		    } else {
+			if($rsa) {
+			    if($rsa3) {
+				if($splitsCnt[$hand->{'pos'}] < 2) {
+				    $action = $table{$pRank . $pRank}{$dRank};
+				} else {
+				    $action = 's'; # limit hits on split aces.
+				}
+			    } else {
+				$action = $table{$pRank . $pRank}{$dRank};
+			    }
+			} else {
+			    $action = 's'; # limit hits on split aces.
+			}
+		    }
+		} else { # non-ace splits.
+		    if($rs3) {
+			if($splitsCnt[$hand->{'pos'}] < 2) {
+			    $action = $table{$pRank . $pRank}{$dRank};
+			} else {
+			    if(isSoft($hand->{'cards'})) { #soft?
+				if($bestTotal >= 19) {
+				    $action = 's';
+				} else {
+				    $action = $table{'s' . $bestTotal}{$dRank};
+				}
+			    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
+				if($bestTotal >= 17) {
+				    $action = 's';
+				} else {
+				    if(not exists $table{$bestTotal}{$dRank}) {
+					$action = $table{"h" . $bestTotal}{$dRank};
+				    } else {
+					$action = $table{$bestTotal}{$dRank};
+				    }
+				}
+			    }
+			}
+		    } else {
+			$action = $table{$pRank . $pRank}{$dRank};
+		    }
 		}
-		$action = $table{$pRank . $pRank}{$dRank};
 	    } elsif(isSoft($hand->{'cards'})) { #soft?
 		if($bestTotal >= 19) {
-		    if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
-			$hand->{'pInit'} = 's19';
-		    }
 		    $action = 's';
 		} else {
-		    if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
-			$hand->{'pInit'} = 's' . $bestTotal;
-		    }
 		    $action = $table{'s' . $bestTotal}{$dRank};
 		}
 	    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
@@ -144,14 +178,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		    $action = 's';
 		} else {
 		    if(not exists $table{$bestTotal}{$dRank}) {
-			if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
-			    $hand->{'pInit'} = "h" . $bestTotal;
-			}
 			$action = $table{"h" . $bestTotal}{$dRank};
 		    } else {
-			if(scalar @{$hand->{'cards'}} == 2 and $hand->{'splitID'} == 0) {  ### record starters, etc.
-			    $hand->{'pInit'} = $bestTotal;
-			}
 			$action = $table{$bestTotal}{$dRank};
 		    }
 		}
@@ -164,26 +192,25 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	    }
 
 
-	    ### execute player actions.
+	    ## execute player actions.
 	    if($action eq 'sp') { ### split
 		if($DEBUG) {
 		    print "SPLITTING\n";
 		}
+
 		my %newSpot = %hand;
 		my $card0 = $hand->{'cards'}->[0];
 		my $card1 = $hand->{'cards'}->[1];
 
-		my $popCard0 = shift @deck;
-		$runningCount += KOVal($popCard0);
-		my $popCard1 = shift @deck;
-		$runningCount += KOVal($popCard1);
-		$hand->{'cards'} = [$card0, $popCard0];
-		$newSpot->{'cards'} = [$card1, $popCard1];
-
+		$hand->{'cards'} = [$card0, shift @deck];
+		$newSpot->{'cards'} = [$card1, shift @deck];
+		
 		$newSpot->{'bet'} = $hand->{'bet'};
 		$newSpot->{'pos'} = $hand->{'pos'};
 		$newSpot->{'splitID'} = $hand->{'splitID'} + 1;
-		
+
+		++$splitsCnt[$hand->{'pos'}];
+
 		push @places,$hand;
 		push @places,$newSpot;
 
@@ -192,13 +219,14 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		    print "PAT\n";
 		}
 		push @patPlaces,$hand;
+#FIXME: break up below compound condition.
 	    } elsif($action eq 'dh' or $action eq 'd' or $action eq 'ds') { ### double down
+#FIXME: check if two cards only.
 		if($DEBUG) {
 		    print "DOUBLING\n";
 		}
 		$hand->{'bet'} = $hand->{'bet'} * 2;
 		my $doubleCard = shift @deck;
-		$runningCount += KOVal($doubleCard);
 		push @{$hand->{'cards'}},$doubleCard;
 		if(isBusted($hand->{'cards'})) { ### busted
 		    $hand->{'busted'} = "yes";
@@ -206,13 +234,12 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		} else {
 		    push @patPlaces,$hand;
 		}
+#FIXME: break up below compound condition.
 	    } elsif($action eq 'su' or $action eq 'h') { ### hitting
 		if($DEBUG) {
 		    print "HITTING\n";
 		}
-		my $hitCard = shift @deck;
-		$runningCount += KOVal($hitCard);
-		push @{$hand->{'cards'}},$hitCard;
+		push @{$hand->{'cards'}},shift @deck;;
 		if(isBusted($hand->{'cards'})) { ### busted
 		    $hand->{'busted'} = "yes";
 		    push @bustedPlaces,$hand;
@@ -244,7 +271,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	my @dealerTotals = getTotals(\@dealer);
 	my $dealerBest = bestTotal(\@dealerTotals);
 	print "Dealer: " . join(' ',@dealer) . "\n";
-	$runningCount += KOVal($dealer[0]);
 	print "DealerTots: " . Dumper(\@dealerTotals);
 	print "DealerBest: $dealerBest\n";
 
@@ -253,7 +279,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	    print "---DEALER PAUSE---\n";
 	    my $key = <>;
 	    my $dealerCard = shift @deck;
-	    $runningCount += KOVal($dealerCard);
 	    push @dealer,$dealerCard;
 	    @dealerTotals = getTotals(\@dealer);
 	    $dealerBest = bestTotal(\@dealerTotals);
@@ -274,7 +299,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 #FIXME: naturals
 #FIXME: pushing naturals 
-#FIXME: split then naturals?
+#FIXME: split then naturals? NO.
+#FIXME: record dInit and pInitInit
 
 	### determine winners/losers
 	if(isBusted(\@dealer)) {
@@ -498,100 +524,6 @@ sub isBusted {
     }
   }
 
-#    my $key = "h";
-#    while ($key eq "h" or $key eq "p") {
-#	print scalar @deck . " cards remaining.\n";
-#	print "Player: " . join(' ',@{$hand->{cards}}) . "\n";
-#	print "(h)it, (s)tand, (d)ouble down, s(p)lit:\n";
-#	$key = <>;
-#	chomp $key;
-#	if($key eq "h") {
-#	    print "Hitting.\n";
-#	    push @{$hand->{cards}},pop @deck;
-#	    if(busted($hand)) {
-#		$key = '';
-#		$hand->{bet} = 0;
-#		push @patPlaces,$hand;
-#		undef $hand;
-#	    }
-#	} elsif ($key eq "s") {
-#	    print "Standing.\n";
-#	    push @patPlaces,$hand;
-#	    undef $hand;
-#	} elsif ($key eq "d") {
-#	    print "Doubling-down.\n";
-#	    $playerChips -= $hand->{bet}; # betting more chips.
-#	    print "You have $playerChips remaining.\n";
-#	    push @{$hand->{cards}},pop @deck;
-#	    if(busted($hand)) {
-#		$key = '';
-#		$hand->{bet} = 0;
-#		push @patPlaces,$hand;
-#		undef $hand;
-#	    } else {
-#		$hand->{bet} += $bet;
-#	    }
-#	    push @patPlaces,$hand;
-#	    undef $hand;
-#	} elsif ($key eq "p") {
-#	    print "Splitting.\n";
-#	    my @newCards;
-#	    push @newCards,pop @{$hand->{cards}};
-#	    push @newCards,pop @deck;
-#	    push @{$hand->{cards}},pop @deck;
-#	    push @places,{('bet' => $bet, 'cards' => \@newCards, 'pos' => ++$pos)};
-#	    $playerChips -= $bet;
-#	    print "You have $playerChips remaining.\n";
-#	} else {
-#	    print "Not a valid choice.\n";
-#	    $key = "h";
-#	}
-#    }
-#}
-    
-
-
-
-
-
-
-####dealer's turn
-#while(total(@dealer) < 17 and soft(@dealer) and not busted(@dealer)) {
-#  push @dealer,pop @deck;
-#}
-#
-#if(busted(@dealer)) {
-#  pay(%places);
-#}
-
-
-
-#########################################
-#sub total {
-#  my $refCards = pop @_;
-#  my @deck = @{$refCards};
-#  my @vals = map { s/^[kqjt][shdc]/10/g } @deck;
-#  @vals = map { s/^a[shdc]/11/g } @vals;
-#  my $total = sum @vals;
-#
-#
-#
-#
-#
-##  my $sum = 0;
-##  foreach (@deck) {
-##    if($_ =~ /^(\d)/) {
-##      $sum += $1;
-##    } 
-##    if($_ =~ /^[kqjt]/) {
-##      $sum += 10;
-##    }
-##    if($_ =~ /^a/) {
-##      $sum += 11;
-##    }
-##  }
-##  return $sum;
-#}
 
 
 
@@ -625,17 +557,3 @@ sub isBusted {
 #s15    h  h dh dh dh  h  h  h  h  h
 #s14    h  h  h dh dh  h  h  h  h  h
 #s13    h  h  h dh dh  h  h  h  h  h
-
-
-
-
-####place bets
-#my $bet = 'a';
-#while(not looks_like_number $bet) {
-#  print "Enter bet (You have $playerChips):";
-#  $bet = <STDIN>;
-#}
-#chomp $bet;
-#$playerChips -= $bet;
-#print "Betting $bet.\n";
-#print "You have $playerChips remaining.\n";
