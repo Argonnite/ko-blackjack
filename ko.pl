@@ -9,8 +9,10 @@ my $DEBUG = 1;
 #FIXME: make sure doubling happens only on 2 cards
 
 
-my $nDecks = 8;      # size of shoe
-my $cut = 1;         # penetration in number of decks unseen
+#my $nDecks = 8;      # size of shoe
+#my $cut = 1;         # penetration in number of decks unseen
+my $nDecks = 1;      # size of shoe
+my $cut = 0.7;         # penetration in number of decks unseen
 my $nShoesToRun = 5; # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
 my $spreadMax;
@@ -21,7 +23,7 @@ my $spotsLimit = 2;  # number of those seated
 my $bjPayout = 1.5;
 my $esAllowed = 0;   # surrender flags
 my $lsAllowed = 0;
-my $rsa = 0;         # resplit aces allowed
+my $rsa = 1;         # resplit aces allowed
 my $rs = 0;          # resplit any allowed
 my $rsa3 = 1;        # resplit aces once
 my $rs3 = 1;         # resplit once more
@@ -29,6 +31,7 @@ my $esAllowed;       # early surrender
 my $lsAllowed;       # late surrender
 my $dasAllowed;      # doubling after splitting
 my $h17 = 1;         # dealer hits soft 17
+my $das = 0;         # doubling after splitting aces
 
 
 my %table = ();
@@ -84,6 +87,26 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         ### players' hits
 	my @patPlaces;
 	my @bustedPlaces;
+
+
+
+
+###TESTING HERE###
+print "###TESTING HERE###\n";
+@deck = ( 'ag', '5c', 'as', '7c', 'kd', '4h', 'ah', 'qs');
+unshift @deck,"ae";
+unshift @deck,"af";
+print Dumper(\@deck);
+print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+print "PLACES\n";
+$places[0]{'cards'}[0] = "aa";
+$places[0]{'cards'}[1] = "ab";
+print Dumper(\@places);
+#exit(0);
+
+
+#FIXME: check dealer bj before player actions.
+
 	while (scalar @places) {
 	    my $hand = shift @places;
 	    my @totals = getTotals($hand->{'cards'});
@@ -98,6 +121,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
 		print "BESTTOT: $bestTotal\n";
 		print "ISNATURAL: " . isNatural($hand->{'cards'}) . "\n";
+		print "SPLITSCNT: $splitsCnt[$hand->{'pos'}]\n";
 	    }
 
 	    my $pRank = substr($hand->{'cards'}->[0],0,1);
@@ -116,27 +140,33 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	    }
 
 
+
 	    ## lookup player actions.
 	    my $action;
 	    if(isNatural($hand->{'cards'})) { #bj?
 		$action = "bj";
 	    } elsif(isPair($hand->{'cards'})) { #split?
 #FIXME: test these branches.
+#FIXME: add nodas/das checking.
 		if($pRank eq 'a') {  # ace splits
-		    if($splitsCnt[$hand->{'pos'}] == 0) { # the original aces
+		    if($splitsCnt[$hand->{'splID'}] == 0) { # the original aces
 			$action = $table{$pRank . $pRank}{$dRank};
 		    } else {
 			if($rsa) {
 			    if($rsa3) {
 				if($splitsCnt[$hand->{'pos'}] < 2) {
+print "DO I GET HERE?99\n";
 				    $action = $table{$pRank . $pRank}{$dRank};
 				} else {
+print "DO I GET HERE?AA\n";
 				    $action = 's'; # limit hits on split aces.
 				}
 			    } else {
+print "DO I GET HERE?BB\n";
 				$action = $table{$pRank . $pRank}{$dRank};
 			    }
 			} else {
+print "DO I GET HERE?CC\n";
 			    $action = 's'; # limit hits on split aces.
 			}
 		    }
@@ -198,21 +228,44 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		    print "SPLITTING\n";
 		}
 
-		my %newSpot = %hand;
+		my %newSpot = %{$hand};
 		my $card0 = $hand->{'cards'}->[0];
 		my $card1 = $hand->{'cards'}->[1];
 
-		$hand->{'cards'} = [$card0, shift @deck];
-		$newSpot->{'cards'} = [$card1, shift @deck];
+#print "DEBUGGING_A $card0\n";
+#print "DEBUGGING_B $card1\n";
+		my $newCard0 = shift @deck;
+		my $newCard1 = shift @deck;
+
+#print "DEBUGGING_C $newCard0\n";
+#print "DEBUGGING_D $newCard1\n";
+#
+#print "DEBUGGING1\n";
+#print Dumper($hand);
+#print "DEBUGGING2\n";
+#print Dumper(\%newSpot);
+
+		$hand->{'cards'} = [$card0, $newCard0];
+		$newSpot{'cards'} = [$card1, $newCard1];
+
+#print "DEBUGGING3\n";
+#print Dumper($hand);
+#print "DEBUGGING4\n";
+#print Dumper(\%newSpot);
+#exit(0);
+
 		
-		$newSpot->{'bet'} = $hand->{'bet'};
-		$newSpot->{'pos'} = $hand->{'pos'};
-		$newSpot->{'splitID'} = $hand->{'splitID'} + 1;
+		$newSpot{'bet'} = $hand->{'bet'};
+		$newSpot{'pos'} = $hand->{'pos'};
+		$newSpot{'splitID'} = $hand->{'splitID'} + 1;
+
+
 
 		++$splitsCnt[$hand->{'pos'}];
 
-		push @places,$hand;
-		push @places,$newSpot;
+
+		unshift @places,$hand;
+		unshift @places,\%newSpot;
 
 	    } elsif($action eq 's') { ### stand pat
 		if($DEBUG) {
@@ -236,6 +289,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		}
 #FIXME: break up below compound condition.
 	    } elsif($action eq 'su' or $action eq 'h') { ### hitting
+#FIXME: su only on 2 cards?
 		if($DEBUG) {
 		    print "HITTING\n";
 		}
@@ -305,25 +359,45 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	### determine winners/losers
 	if(isBusted(\@dealer)) {
 	    foreach my $patHand (@patPlaces) {
+print "DO I GET HERE?1\n";
 		if(isNatural($patHand->{'cards'})) {
-		    $patHand->{'won'} = 1.5;
+		    if($splitsCnt[$patHand->{'pos'}] == 0) {
+			$patHand->{'won'} = "bj";
+		    } else {
+			$patHand->{'won'} = "yes";
+		    }
 		} else {
-		    $patHand->{'won'} = 1;
+		    $patHand->{'won'} = "yes";
 		}
 	    }
 	} elsif(isNatural(\@dealer)) {
-	} else {
+print "DO I GET HERE?2\n";
 	    foreach my $patHand (@patPlaces) {
-		my $pTot = bestTotal(getTotals(@{$patHand->{'cards'}}));
+		if(isNatural($patHand->{'cards'})) {
+		    $patHand->{'pushed'} = "yes";
+		} else {
+		    $patHand->{'lost'} = "yes";
+		}
+	    }
+	} else {
+print "DO I GET HERE?3\n";
+	    foreach my $patHand (@patPlaces) {
+		my @tmp = getTotals($patHand->{'cards'});
+		my $pTot = bestTotal(\@tmp);
+print "TMP: " . Dumper(\@tmp);
+print "PTOT = $pTot\n";
 		if($pTot > $dealerBest) {
+print "DO I GET HERE?3a\n";
 		    if(isNatural($patHand->{'cards'})) {
-			$patHand->{'won'} = 1.5;
+			$patHand->{'won'} = "bj";
 		    } else {
-			$patHand->{'won'} = 1;
+			$patHand->{'won'} = "yes";
 		    }
 		} elsif($pTot < $dealerBest) {
-		    $patHand->{'lost'} = 1;
+print "DO I GET HERE?3b\n";
+		    $patHand->{'lost'} = "yes";
 		} else {
+print "DO I GET HERE?3c\n";
 		    $patHand->{'pushed'} = "yes";
 		}
 	    }
