@@ -4,7 +4,6 @@ use Scalar::Util qw/looks_like_number/;
 
 my $DEBUG = 1;
 
-#FIXME: handle deck runouts
 #FIXME: action granularities and flags
 #FIXME: make sure doubling happens only on 2 cards
 
@@ -18,20 +17,21 @@ my $spreadMin;       # limits on the betting spread
 my $spreadMax;
 my $RCmin;           # running min count reached for the shoe
 my $RCmax;           # running max count reached for the shoe
-my $rsLimit = 3;     # limit on resplits.  -1 if unlimited.
 my $spotsLimit = 2;  # number of those seated
 my $bjPayout = 1.5;
-my $esAllowed = 0;   # surrender flags
-my $lsAllowed = 0;
+my $esAllowed;       # early surrender
+my $lsAllowed;       # late surrender
 my $rsa = 1;         # resplit aces allowed
 my $rs = 0;          # resplit any allowed
 my $rsa3 = 1;        # resplit aces once
 my $rs3 = 1;         # resplit once more
-my $esAllowed;       # early surrender
-my $lsAllowed;       # late surrender
-my $dasAllowed;      # doubling after splitting
-my $h17 = 1;         # dealer hits soft 17
 my $das = 0;         # doubling after splitting aces
+my $ds;              # doubling after splitting
+my $da;              # double down on any two cards
+my $hsa;             # can hit after splitting aces
+my $nsa;             # no splitting of aces
+my $nrs;             # no resplitting
+my $h17 = 1;         # dealer hits soft 17
 
 
 my %table = ();
@@ -66,8 +66,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
         ### dealer's cards
 	my @dealer;
-	push @dealer,shift @deck;
-	push @dealer,shift @deck;
+	push @dealer,deal(\@deck,\@discards);
+	push @dealer,deal(\@deck,\@discards);
 	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
 
         ### players' cards
@@ -76,7 +76,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	my $bet = 1;
 	my @splitsCnt;
 	for(my $i = 0; $i < $spotsLimit; ++$i) {
-	    push @places,{('bet' => $bet, 'cards' => [shift @deck, shift @deck], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand)};
+	    push @places,{('bet' => $bet, 'cards' => [deal(\@deck,\@discards), deal(\@deck,\@discards)], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand)};
 	    $splitsCnt[$i] = 0;
 	}
 	if($DEBUG) {
@@ -109,8 +109,8 @@ print Dumper(\@places);
 
 	while (scalar @places) {
 	    my $hand = shift @places;
-	    my @totals = getTotals($hand->{'cards'});
-	    my $bestTotal = bestTotal(\@totals);
+	    my @totalsAry = getTotals($hand->{'cards'});
+	    my $bestTotal = bestTotal(\@totalsAry);
 
 	    if($DEBUG) {
 		print "WORKING ON:\n";
@@ -124,21 +124,14 @@ print Dumper(\@places);
 		print "SPLITSCNT: $splitsCnt[$hand->{'pos'}]\n";
 	    }
 
-	    my $pRank = substr($hand->{'cards'}->[0],0,1);
-	    if($pRank =~ /[kqjt]/) {
-		$pRank = 't';
-	    }
+	    my $pRank = getRank($hand->{'cards'}->[0]);
 	    if($DEBUG) {
 		print "PRANK: $pRank\n";
 	    }
-	    my $dRank = substr($dealer[1],0,1);
-	    if($dRank =~ /[kqjt]/) {
-		$dRank = 't';
-	    }
+	    my $dRank = getRank($dealer[1]);
 	    if($DEBUG) {
 		print "DRANK: $dRank\n";
 	    }
-
 
 
 	    ## lookup player actions.
@@ -148,7 +141,8 @@ print Dumper(\@places);
 	    } elsif(isPair($hand->{'cards'})) { #split?
 #FIXME: test these branches.
 #FIXME: add nodas/das checking.
-		if($pRank eq 'a') {  # ace splits
+# rsa, rs, rsa3, rs3, das, ds, da, hsa, nsa, nrs
+		if(isAce($pRank)) {  # ace splits
 		    if($splitsCnt[$hand->{'splID'}] == 0) { # the original aces
 			$action = $table{$pRank . $pRank}{$dRank};
 		    } else {
@@ -232,41 +226,20 @@ print "DO I GET HERE?CC\n";
 		my $card0 = $hand->{'cards'}->[0];
 		my $card1 = $hand->{'cards'}->[1];
 
-#print "DEBUGGING_A $card0\n";
-#print "DEBUGGING_B $card1\n";
-		my $newCard0 = shift @deck;
-		my $newCard1 = shift @deck;
+		my $newCard0 = deal(\@deck,\@discards);
+		my $newCard1 = deal(\@deck,\@discards);
 
-#print "DEBUGGING_C $newCard0\n";
-#print "DEBUGGING_D $newCard1\n";
-#
-#print "DEBUGGING1\n";
-#print Dumper($hand);
-#print "DEBUGGING2\n";
-#print Dumper(\%newSpot);
-
-		$hand->{'cards'} = [$card0, $newCard0];
+		$hand->{'cards'} = [$card0, $newCard0]; # dereferencing
 		$newSpot{'cards'} = [$card1, $newCard1];
 
-#print "DEBUGGING3\n";
-#print Dumper($hand);
-#print "DEBUGGING4\n";
-#print Dumper(\%newSpot);
-#exit(0);
-
-		
-		$newSpot{'bet'} = $hand->{'bet'};
+		$newSpot{'bet'} = $hand->{'bet'}; # not-dereferencing
 		$newSpot{'pos'} = $hand->{'pos'};
 		$newSpot{'splitID'} = $hand->{'splitID'} + 1;
 
-
-
 		++$splitsCnt[$hand->{'pos'}];
-
 
 		unshift @places,$hand;
 		unshift @places,\%newSpot;
-
 	    } elsif($action eq 's') { ### stand pat
 		if($DEBUG) {
 		    print "PAT\n";
@@ -279,7 +252,7 @@ print "DO I GET HERE?CC\n";
 		    print "DOUBLING\n";
 		}
 		$hand->{'bet'} = $hand->{'bet'} * 2;
-		my $doubleCard = shift @deck;
+		my $doubleCard = deal(\@deck,\@discards);
 		push @{$hand->{'cards'}},$doubleCard;
 		if(isBusted($hand->{'cards'})) { ### busted
 		    $hand->{'busted'} = "yes";
@@ -293,7 +266,7 @@ print "DO I GET HERE?CC\n";
 		if($DEBUG) {
 		    print "HITTING\n";
 		}
-		push @{$hand->{'cards'}},shift @deck;;
+		push @{$hand->{'cards'}},deal(\@deck,\@discards);
 		if(isBusted($hand->{'cards'})) { ### busted
 		    $hand->{'busted'} = "yes";
 		    push @bustedPlaces,$hand;
@@ -322,23 +295,23 @@ print "DO I GET HERE?CC\n";
 
 
         ### dealer actions
-	my @dealerTotals = getTotals(\@dealer);
-	my $dealerBest = bestTotal(\@dealerTotals);
+	my @dealerTotalsAry = getTotals(\@dealer);
+	my $dealerBest = bestTotal(\@dealerTotalsAry);
 	print "Dealer: " . join(' ',@dealer) . "\n";
-	print "DealerTots: " . Dumper(\@dealerTotals);
+	print "DealerTots: " . Dumper(\@dealerTotalsAry);
 	print "DealerBest: $dealerBest\n";
 
 
 	while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
 	    print "---DEALER PAUSE---\n";
 	    my $key = <>;
-	    my $dealerCard = shift @deck;
+	    my $dealerCard = deal(\@deck,\@discards);
 	    push @dealer,$dealerCard;
-	    @dealerTotals = getTotals(\@dealer);
-	    $dealerBest = bestTotal(\@dealerTotals);
+	    @dealerTotalsAry = getTotals(\@dealer);
+	    $dealerBest = bestTotal(\@dealerTotalsAry);
 	    print "DEALER HITTING.\n";
 	    print "DEALER: " . join(' ',@dealer) . "\n";
-	    print "DEALERTOTS: " . Dumper(\@dealerTotals);
+	    print "DEALERTOTS: " . Dumper(\@dealerTotalsAry);
 	    print "DEALERBEST: $dealerBest\n";
 	}
 
@@ -414,6 +387,44 @@ print "DO I GET HERE?3c\n";
     }
 }
 ##################################################################
+
+### sub isAce
+sub isAce {
+    my $input = shift(@_);
+    if(getRank($input) eq 'a') {
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+
+### sub getRank
+sub getRank {
+    my $input = substr(shift(@_),0,1);
+    if($input =~ /[kqjt]/) {
+	return 't';
+    } else {
+	return $input;
+    }
+}
+
+
+### sub deal
+sub deal {
+    my $deckRef = shift(@_);
+    my $discardsRef = shift(@_);
+
+    if(scalar @{$deckRef} < 1) {
+#FIXME: reshuffle discards here.	
+	print "ERROR: Deck running out.\n";
+	exit(0);
+    } else {
+	return shift @{$deckRef};
+    }
+
+}
+
 
 ### sub KOVal
 sub KOVal {
@@ -557,7 +568,7 @@ sub getTotals {
     foreach my $card (@{$cards}) {
 	my @newSums = ();
 	my $rank = substr($card,0,1);
-	if($rank eq 'a') {
+	if(isAce($rank)) {
 	    foreach my $total (@sums) {  ### add ones
 		push @newSums,($total + 1);
 	    }
