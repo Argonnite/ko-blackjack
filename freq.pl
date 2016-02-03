@@ -2,6 +2,8 @@ use strict;
 use warnings;
 use Data::Dumper;
 
+#TODO: passline odds.
+
 my $filename = 'blah.csv';
 
 open(my $fh, '<', $filename) or die "Can't open $!";
@@ -17,6 +19,8 @@ my $on = 0;
 my $cutoff = -1; # max trials
 my $net = 0;
 my $working = 0;
+my $minNet = 10000;
+my $maxNet = -10000;
 
 
 while(<$fh>) {
@@ -71,10 +75,10 @@ while(<$fh>) {
 	  if($working == 1 and $sum == 7) {
 	      $net = $net - 5 - 5 - 6 - 6;
 	  }
-	  print "$sum\n";
+	  print "$sum:$net\n";
       } elsif($sum == 2 or $sum == 3 or $sum == 12) {
 #	  $net = $net - 5 - 5 - 6 - 6;
-	  print "$sum\n";
+	  print "$sum:$net\n";
       } else {
 	  $on = $sum;
 	  $off = 0;
@@ -90,18 +94,19 @@ while(<$fh>) {
       if($sum == 7) {
 	  $on = 0;
 	  $off = 1;
-	  print "$sum\n";
 	  $net = $net - 5 - 5 - 6 - 6;
+	  print "$sum:$net\n";
       } elsif($on == $sum) {
 	  $on = 0;
 	  $off = 1;
-	  print "$sum\n";
+	  $net += 5;
 	  if($sum == 6 or $sum == 8) {
 	      $net += 7;
 	  }
 	  if($sum == 5 or $sum == 9) {
 	      $net += 7;
 	  }
+	  print "$sum:$net\n";
       } else {
 	  print "$sum,";
 	  if($sum == 6 or $sum == 8) {
@@ -114,6 +119,13 @@ while(<$fh>) {
   }
 
   ++$n;
+
+  if($net < $minNet) {
+      $minNet = $net;
+  }
+  if($net > $maxNet) {
+      $maxNet = $net;
+  }
 
   if($cutoff > 0 and $n > $cutoff) {
       last;
@@ -136,6 +148,8 @@ print "SECONDARY: $nSecondary\n";
 print "DOUBLE: $nDouble\n";
 print "PD: " . $nPrimary/$nDouble . "\n";
 print "NET: $net\n";
+print "MINNET: $minNet\n";
+print "MAXNET: $maxNet\n";
 
 foreach my $key (sort keys(%hist)) {
     print $key . " - " . $hist{$key}/$n . "\n";
