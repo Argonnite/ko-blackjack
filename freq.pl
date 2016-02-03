@@ -16,6 +16,7 @@ my $off = 1;
 my $on = 0;
 my $cutoff = 1990;
 my $net = 0;
+my $working = 0;
 
 
 while(<$fh>) {
@@ -67,9 +68,12 @@ while(<$fh>) {
   if($off) {
       if($sum == 7 or $sum == 11) {
 	  $net += 5;
+	  if($working == 1 and $sum == 7) {
+	      $net = $net - 5 - 5 - 6 - 6;
+	  }
 	  print "$sum\n";
       } elsif($sum == 2 or $sum == 3 or $sum == 12) {
-	  $net = $net - 5 - 5 - 6 - 6;
+#	  $net = $net - 5 - 5 - 6 - 6;
 	  print "$sum\n";
       } else {
 	  $on = $sum;
