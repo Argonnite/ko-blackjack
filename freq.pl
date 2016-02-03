@@ -161,12 +161,12 @@ print "MAXNET: $maxNet\n";
 
 my $chiSquareTot = 0;
 foreach my $key (sort keys(%hist)) {
-    my $actual = $hist{$key}/$n;
+    my $actual = $hist{$key};
     my $theoretical;
     if($key == 11 or $key == 22 or $key == 33 or $key == 44 or $key == 55 or $key == 66) {
-	$theoretical = 1/36;
+	$theoretical = 1/36 * $n;
     } else {
-	$theoretical = 2/36;
+	$theoretical = 2/36 * $n;
     }
     my $chiSquare = ($actual - $theoretical) * ($actual - $theoretical) / $theoretical;
     print $key . " - " . $actual . " -- " . $theoretical . " -- " . $chiSquare . "\n";
