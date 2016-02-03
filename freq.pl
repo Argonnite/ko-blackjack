@@ -158,6 +158,18 @@ print "NET: $net\n";
 print "MINNET: $minNet\n";
 print "MAXNET: $maxNet\n";
 
+
+my $chiSquareTot = 0;
 foreach my $key (sort keys(%hist)) {
-    print $key . " - " . $hist{$key}/$n . "\n";
+    my $actual = $hist{$key}/$n;
+    my $theoretical;
+    if($key == 11 or $key == 22 or $key == 33 or $key == 44 or $key == 55 or $key == 66) {
+	$theoretical = 1/36;
+    } else {
+	$theoretical = 2/36;
+    }
+    my $chiSquare = ($actual - $theoretical) * ($actual - $theoretical) / $theoretical;
+    print $key . " - " . $actual . " -- " . $chiSquare . "\n";
+    $chiSquareTot += $chiSquare;
 }
+print "CHISQUARETOT: $chiSquareTot\n";
