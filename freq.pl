@@ -9,6 +9,14 @@ open(my $fh, '<', $filename) or die "Can't open $!";
 my %hist;
 my $n = 0;
 my $nSevens = 0;
+my $nPrimary = 0;
+my $nSecondary = 0;
+my $nDouble = 0;
+my $off = 1;
+my $on = 0;
+my $cutoff = 1990;
+my $net = 0;
+
 
 while(<$fh>) {
   chomp;
@@ -32,30 +40,80 @@ while(<$fh>) {
   if($raw == 64) { $raw = 46; }
   if($raw == 65) { $raw = 56; }
 
-  if($raw == 11) { $hist{'11'}++; }
+  if($raw == 11) { $hist{'11'}++; $nPrimary++; }
   if($raw == 12) { $hist{'12'}++; }
   if($raw == 13) { $hist{'13'}++; }
   if($raw == 14) { $hist{'14'}++; }
   if($raw == 15) { $hist{'15'}++; }
   if($raw == 16) { $hist{'16'}++; $nSevens++; }
-  if($raw == 22) { $hist{'22'}++; }
-  if($raw == 23) { $hist{'23'}++; }
-  if($raw == 24) { $hist{'24'}++; }
-  if($raw == 25) { $hist{'25'}++; $nSevens++; }
+  if($raw == 22) { $hist{'22'}++; $nPrimary++; }
+  if($raw == 23) { $hist{'23'}++; $nSecondary++; }
+  if($raw == 24) { $hist{'24'}++; $nSecondary++; }
+  if($raw == 25) { $hist{'25'}++; $nSevens++; $nDouble++; }
   if($raw == 26) { $hist{'26'}++; }
-  if($raw == 33) { $hist{'33'}++; }
-  if($raw == 34) { $hist{'34'}++; $nSevens++; }
-  if($raw == 35) { $hist{'35'}++; }
+  if($raw == 33) { $hist{'33'}++; $nPrimary++; }
+  if($raw == 34) { $hist{'34'}++; $nSevens++; $nDouble++; }
+  if($raw == 35) { $hist{'35'}++; $nSecondary++; }
   if($raw == 36) { $hist{'36'}++; }
-  if($raw == 44) { $hist{'44'}++; }
-  if($raw == 45) { $hist{'45'}++; }
+  if($raw == 44) { $hist{'44'}++; $nPrimary++; }
+  if($raw == 45) { $hist{'45'}++; $nSecondary++; }
   if($raw == 46) { $hist{'46'}++; }
-  if($raw == 55) { $hist{'55'}++; }
+  if($raw == 55) { $hist{'55'}++; $nPrimary++; }
   if($raw == 56) { $hist{'56'}++; }
-  if($raw == 66) { $hist{'66'}++; }
+  if($raw == 66) { $hist{'66'}++; $nPrimary++; }
+
+  my $sum = substr($raw,0,1) + substr($raw,1,1);
+
+  if($off) {
+      if($sum == 7 or $sum == 11) {
+	  $net += 5;
+	  print "$sum\n";
+      } elsif($sum == 2 or $sum == 3 or $sum == 12) {
+	  $net -= 5;
+	  print "$sum\n";
+      } else {
+	  $on = $sum;
+	  $off = 0;
+	  print "$sum,";
+	  if($sum == 6 or $sum == 8) {
+	      $net += 7;
+	  }
+	  if($sum == 5 or $sum == 9) {
+	      $net += 7;
+	  }
+      }
+  } elsif($on) {
+      if($sum == 7) {
+	  $on = 0;
+	  $off = 1;
+	  print "$sum\n";
+	  $sum = $sum - 5 - 5 - 6 - 6;
+      } elsif($on == $sum) {
+	  $on = 0;
+	  $off = 1;
+	  print "$sum\n";
+	  if($sum == 6 or $sum == 8) {
+	      $net += 7;
+	  }
+	  if($sum == 5 or $sum == 9) {
+	      $net += 7;
+	  }
+      } else {
+	  print "$sum,";
+	  if($sum == 6 or $sum == 8) {
+	      $net += 7;
+	  }
+	  if($sum == 5 or $sum == 9) {
+	      $net += 7;
+	  }
+      }
+  }
 
   ++$n;
 
+  if($n > $cutoff) {
+      last;
+  }
 }
 
 #while ((my $key, my $value) = each %hist) {
@@ -68,3 +126,13 @@ print Dumper(\%hist);
 print "SEVENS = $nSevens\n";
 print "N = $n\n";
 print "1:" . $n/$nSevens . "\n";
+
+print "PRIMARY: $nPrimary\n";
+print "SECONDARY: $nSecondary\n";
+print "DOUBLE: $nDouble\n";
+print "PD: " . $nPrimary/$nDouble . "\n";
+print "NET: $net\n";
+
+foreach my $key (sort keys(%hist)) {
+    print $key . " - " . $hist{$key}/$n . "\n";
+}
