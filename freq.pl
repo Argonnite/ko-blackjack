@@ -169,7 +169,7 @@ foreach my $key (sort keys(%hist)) {
 	$theoretical = 2/36;
     }
     my $chiSquare = ($actual - $theoretical) * ($actual - $theoretical) / $theoretical;
-    print $key . " - " . $actual . " -- " . $chiSquare . "\n";
+    print $key . " - " . $actual . " -- " . $theoretical . " -- " . $chiSquare . "\n";
     $chiSquareTot += $chiSquare;
 }
 print "CHISQUARETOT: $chiSquareTot\n";
