@@ -14,7 +14,7 @@ my $nSecondary = 0;
 my $nDouble = 0;
 my $off = 1;
 my $on = 0;
-my $cutoff = 1990;
+my $cutoff = -1; # max trials
 my $net = 0;
 my $working = 0;
 
@@ -115,7 +115,7 @@ while(<$fh>) {
 
   ++$n;
 
-  if($n > $cutoff) {
+  if($cutoff > 0 and $n > $cutoff) {
       last;
   }
 }
