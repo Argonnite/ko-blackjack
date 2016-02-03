@@ -69,7 +69,7 @@ while(<$fh>) {
 	  $net += 5;
 	  print "$sum\n";
       } elsif($sum == 2 or $sum == 3 or $sum == 12) {
-	  $net -= 5;
+	  $net = $net - 5 - 5 - 6 - 6;
 	  print "$sum\n";
       } else {
 	  $on = $sum;
@@ -87,7 +87,7 @@ while(<$fh>) {
 	  $on = 0;
 	  $off = 1;
 	  print "$sum\n";
-	  $sum = $sum - 5 - 5 - 6 - 6;
+	  $net = $net - 5 - 5 - 6 - 6;
       } elsif($on == $sum) {
 	  $on = 0;
 	  $off = 1;
