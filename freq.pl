@@ -77,6 +77,7 @@ while(<$fh>) {
 	  }
 	  print "$sum:$net\n";
       } elsif($sum == 2 or $sum == 3 or $sum == 12) {
+	  $net -= 5;
 #	  $net = $net - 5 - 5 - 6 - 6;
 	  print "$sum:$net\n";
       } else {
@@ -85,16 +86,18 @@ while(<$fh>) {
 	  print "$sum,";
 	  if($sum == 6 or $sum == 8) {
 	      $net += 7;
+#print "(DO I GET HERE?1 $net)\n";
 	  }
 	  if($sum == 5 or $sum == 9) {
 	      $net += 7;
+#print "(DO I GET HERE?2 $net)\n";
 	  }
       }
   } elsif($on) {
       if($sum == 7) {
 	  $on = 0;
 	  $off = 1;
-	  $net = $net - 5 - 5 - 6 - 6;
+	  $net = $net - 5 - 5 - 6 - 6 - 5;
 	  print "$sum:$net\n";
       } elsif($on == $sum) {
 	  $on = 0;
@@ -102,18 +105,22 @@ while(<$fh>) {
 	  $net += 5;
 	  if($sum == 6 or $sum == 8) {
 	      $net += 7;
+#print "(DO I GET HERE?3 $net)\n";
 	  }
 	  if($sum == 5 or $sum == 9) {
 	      $net += 7;
+#print "(DO I GET HERE?4 $net)\n";
 	  }
 	  print "$sum:$net\n";
       } else {
 	  print "$sum,";
 	  if($sum == 6 or $sum == 8) {
 	      $net += 7;
+#print "(DO I GET HERE?5 $net)\n";
 	  }
 	  if($sum == 5 or $sum == 9) {
 	      $net += 7;
+#print "(DO I GET HERE?6 $net)\n";
 	  }
       }
   }
