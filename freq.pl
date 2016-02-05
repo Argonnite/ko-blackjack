@@ -21,12 +21,34 @@ my $net = 0;
 my $working = 0;
 my $minNet = 10000;
 my $maxNet = -10000;
+my $srr = 6.4;
 
 
-while(<$fh>) {
-  chomp;
+#while(<$fh>) {
+#  chomp;
+#  my $raw = $_;
 
-  my $raw = $_;
+for(my $i = 0; $i < 400; ++$i) {
+  my $mynum1;
+  my $mynum2;
+  my $raw;
+  if(rand(1) < 1.0/$srr) {  ### make it 7
+      my $tmp = 0;
+      while($tmp != 7) {
+	  $mynum1 = int(rand(6)) + 1;
+	  $mynum2 = int(rand(6)) + 1;
+	  $raw = $mynum1 . $mynum2;
+	  $tmp = $mynum1 + $mynum2;
+      }
+  } else {  ### make it non-7
+      my $tmp = 7;
+      while($tmp == 7) {
+	  $mynum1 = int(rand(6)) + 1;
+	  $mynum2 = int(rand(6)) + 1;
+	  $raw = $mynum1 . $mynum2;
+	  $tmp = $mynum1 + $mynum2;
+      }
+  }
 
 
   if($raw == 21) { $raw = 12; }
@@ -84,13 +106,15 @@ while(<$fh>) {
 	  $on = $sum;
 	  $off = 0;
 	  print "$sum,";
-	  if($sum == 6 or $sum == 8) {
-	      $net += 7;
+	  if($working) {
+	      if($sum == 6 or $sum == 8) {
+		  $net += 7;
 #print "(DO I GET HERE?1 $net)\n";
-	  }
-	  if($sum == 5 or $sum == 9) {
-	      $net += 7;
+	      }
+	      if($sum == 5 or $sum == 9) {
+		  $net += 7;
 #print "(DO I GET HERE?2 $net)\n";
+	      }
 	  }
       }
   } elsif($on) {
