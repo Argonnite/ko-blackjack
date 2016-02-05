@@ -23,6 +23,9 @@ my $minNet = 10000;
 my $maxNet = -10000;
 my $srr = 6.4;
 
+my @newStreak = ();
+my @streak = ();
+
 
 #while(<$fh>) {
 #  chomp;
@@ -100,51 +103,54 @@ for(my $i = 0; $i < 400; ++$i) {
 	  print "$sum:$net\n";
       } elsif($sum == 2 or $sum == 3 or $sum == 12) {
 	  $net -= 5;
-#	  $net = $net - 5 - 5 - 6 - 6;
 	  print "$sum:$net\n";
       } else {
+	  push @newStreak,$sum;
 	  $on = $sum;
 	  $off = 0;
 	  print "$sum,";
 	  if($working) {
 	      if($sum == 6 or $sum == 8) {
 		  $net += 7;
-#print "(DO I GET HERE?1 $net)\n";
 	      }
 	      if($sum == 5 or $sum == 9) {
 		  $net += 7;
-#print "(DO I GET HERE?2 $net)\n";
 	      }
 	  }
       }
   } elsif($on) {
+      push @newStreak,$sum;
       if($sum == 7) {
 	  $on = 0;
 	  $off = 1;
 	  $net = $net - 5 - 5 - 6 - 6 - 5;
 	  print "$sum:$net\n";
+	  if(scalar @newStreak > scalar @streak) {
+	      @streak = @newStreak;
+	  }
+	  @newStreak = ();
       } elsif($on == $sum) {
 	  $on = 0;
 	  $off = 1;
 	  $net += 5;
 	  if($sum == 6 or $sum == 8) {
 	      $net += 7;
-#print "(DO I GET HERE?3 $net)\n";
 	  }
 	  if($sum == 5 or $sum == 9) {
 	      $net += 7;
-#print "(DO I GET HERE?4 $net)\n";
 	  }
 	  print "$sum:$net\n";
+	  if(scalar @newStreak > scalar @streak) {
+	      @streak = @newStreak;
+	  }
+	  @newStreak = ();
       } else {
 	  print "$sum,";
 	  if($sum == 6 or $sum == 8) {
 	      $net += 7;
-#print "(DO I GET HERE?5 $net)\n";
 	  }
 	  if($sum == 5 or $sum == 9) {
 	      $net += 7;
-#print "(DO I GET HERE?6 $net)\n";
 	  }
       }
   }
@@ -158,15 +164,12 @@ for(my $i = 0; $i < 400; ++$i) {
       $maxNet = $net;
   }
 
+
   if($cutoff > 0 and $n > $cutoff) {
       last;
   }
 }
 
-#while ((my $key, my $value) = each %hist) {
-#  print $key . " - " . $value . "\n";
-#}
-#
 print Dumper(\%hist);
 
 
@@ -181,7 +184,8 @@ print "PD: " . $nPrimary/$nDouble . "\n";
 print "NET: $net\n";
 print "MINNET: $minNet\n";
 print "MAXNET: $maxNet\n";
-
+print "nSTREAK: " . scalar @streak . "\n";
+print "STREAK: " . join(',',@streak) . "\n";
 
 my $chiSquareTot = 0;
 foreach my $key (sort keys(%hist)) {
@@ -197,3 +201,4 @@ foreach my $key (sort keys(%hist)) {
     $chiSquareTot += $chiSquare;
 }
 print "CHISQUARETOT: $chiSquareTot\n";
+
