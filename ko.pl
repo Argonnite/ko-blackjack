@@ -11,7 +11,7 @@ my $DEBUG = 1;
 #my $nDecks = 8;      # size of shoe
 #my $cut = 1;         # penetration in number of decks unseen
 my $nDecks = 1;      # size of shoe
-my $cut = 0.7;         # penetration in number of decks unseen
+my $cut = 0.7;       # penetration in number of decks unseen
 my $nShoesToRun = 5; # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
 my $spreadMax;
@@ -26,11 +26,11 @@ my $rs = 0;          # resplit any allowed
 my $rsa3 = 1;        # resplit aces once
 my $rs3 = 1;         # resplit once more
 my $das = 0;         # doubling after splitting aces
-my $ds;              # doubling after splitting
-my $da;              # double down on any two cards
-my $hsa;             # can hit after splitting aces
-my $nsa;             # no splitting of aces
-my $nrs;             # no resplitting
+my $ds = 1;          # doubling after splitting
+my $da = 1;          # double down on any two cards
+my $hsa = 0;         # can hit after splitting aces
+my $nsa = 0;         # no splitting of aces
+my $nrs = 0;         # no resplitting
 my $h17 = 1;         # dealer hits soft 17
 
 
@@ -41,7 +41,7 @@ generate(\%table);
 
 for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
-    ### prep deck
+    ### shuffle
     my $fPenetrationCard = 52.0 * $cut; # when shoe becomes smaller than this, reshuffle.
     my @deck;
     my @ranks = qw/a k q j t 9 8 7 6 5 4 3 2/;
@@ -134,14 +134,75 @@ print Dumper(\@places);
 	    }
 
 
+	    ## splits handling
+	    if(isPair($hand->{'cards'})) {
+		if(isAce($pRank)) {
+		    if($nsa == 0) {
+			if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
+			    #line 3
+			} elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
+			    #line 4
+			} elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] >= 2) {
+			    #line 5
+			} elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
+			    #line 6
+			} elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
+			    #line 7
+			} elsif($hsa == 0 && $rsa == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			    #line 8
+			} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
+			    #line 9
+			} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+			    #line 10
+			} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+			    #line 11
+			} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 0) {
+			    #line 12
+			} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
+			    #line 13
+			} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+			    #line 14
+			} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+			    #line 15
+			} else {
+			    #FAILTHROUGH
+			}
+		    } #else gotoDecision
+		} else { #~isA & isPair
+		    if($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			#line 19
+		    } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
+			#line 20
+		    } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+			#line 21
+		    } elsif($nrs == 0 && $rs3 == 0) {
+			#line 22
+		    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			#line 23
+		    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
+			#line 24
+		    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+			#line 25
+		    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+			#line 26
+		    } else {
+			#FAILTHROUGH
+		    }
+		}
+	    }
+
+
+
+	    ## doubles handling
+
+	    ## decision lookup
+
+
 	    ## lookup player actions.
 	    my $action;
 	    if(isNatural($hand->{'cards'})) { #bj?
 		$action = "bj";
 	    } elsif(isPair($hand->{'cards'})) { #split?
-#FIXME: test these branches.
-#FIXME: add nodas/das checking.
-# rsa, rs, rsa3, rs3, das, ds, da, hsa, nsa, nrs
 		if(isAce($pRank)) {  # ace splits
 		    if($splitsCnt[$hand->{'splID'}] == 0) { # the original aces
 			$action = $table{$pRank . $pRank}{$dRank};
