@@ -32,6 +32,7 @@ my $hsa = 0;         # can hit after splitting aces
 my $nsa = 0;         # no splitting of aces
 my $nrs = 0;         # no resplitting
 my $h17 = 1;         # dealer hits soft 17
+my $bj65 = 0;        # blackjack pays 6:5 instead of 3:2
 
 
 my %table = ();
@@ -140,23 +141,9 @@ print Dumper(\@places);
 			if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
 			    #line 3
 			    #split, unshift new, incr splitsCnt, pat current
-			    my %newSpot = %{$hand};
-			    my $card0 = $hand->{'cards'}->[0];
-			    my $card1 = $hand->{'cards'}->[1];
-			    
-			    my $newCard0 = deal(\@deck,\@discards);
-			    my $newCard1 = deal(\@deck,\@discards);
-			    
-			    $hand->{'cards'} = [$card0, $newCard0]; # dereferencing
-			    $newSpot{'cards'} = [$card1, $newCard1];
-			    
-			    $newSpot{'bet'} = $hand->{'bet'}; # not-dereferencing
-			    $newSpot{'pos'} = $hand->{'pos'};
-			    $newSpot{'splitID'} = $hand->{'splitID'} + 1;
-			    
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
 			    ++$splitsCnt[$hand->{'pos'}];
-			    
-			    unshift @places,\%newSpot;
+			    unshift @places,$newSpotRef;
 			    push @patPlaces,$hand; # "current" is now pat.
 			    undef $hand;
 			} elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
@@ -170,68 +157,27 @@ print Dumper(\@places);
 			} elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
 			    #line 6
 			    #split, unshift new, incr splitsCnt, goto decision
-			    my %newSpot = %{$hand};
-			    my $card0 = $hand->{'cards'}->[0];
-			    my $card1 = $hand->{'cards'}->[1];
-			    
-			    my $newCard0 = deal(\@deck,\@discards);
-			    my $newCard1 = deal(\@deck,\@discards);
-			    
-			    $hand->{'cards'} = [$card0, $newCard0]; # dereferencing
-			    $newSpot{'cards'} = [$card1, $newCard1];
-			    
-			    $newSpot{'bet'} = $hand->{'bet'}; # not-dereferencing
-			    $newSpot{'pos'} = $hand->{'pos'};
-			    $newSpot{'splitID'} = $hand->{'splitID'} + 1;
-			    
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
 			    ++$splitsCnt[$hand->{'pos'}];
-			    
-			    unshift @places,\%newSpot;
+			    unshift @places,$newSpotRef;
 			} elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
 			    #line 7
 			    #goto decision
-			} elsif($hsa == 0 && $rsa == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 0) {
 			    #line 8
 			    #split, unshift new, pat current
-			    my %newSpot = %{$hand};
-			    my $card0 = $hand->{'cards'}->[0];
-			    my $card1 = $hand->{'cards'}->[1];
-			    
-			    my $newCard0 = deal(\@deck,\@discards);
-			    my $newCard1 = deal(\@deck,\@discards);
-			    
-			    $hand->{'cards'} = [$card0, $newCard0]; # dereferencing
-			    $newSpot{'cards'} = [$card1, $newCard1];
-			    
-			    $newSpot{'bet'} = $hand->{'bet'}; # not-dereferencing
-			    $newSpot{'pos'} = $hand->{'pos'};
-			    $newSpot{'splitID'} = $hand->{'splitID'} + 1;
-			    
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
 			    ++$splitsCnt[$hand->{'pos'}];
-			    
-			    unshift @places,\%newSpot;
+			    unshift @places,$newSpotRef;
 			    push @patPlaces,$hand; # "current" is now pat.
 			    undef $hand;
 			} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
+print "DEBUG: LINE9\n";
 			    #line 9
 			    #split, unshift new, incr splitsCnt, pat current
-			    my %newSpot = %{$hand};
-			    my $card0 = $hand->{'cards'}->[0];
-			    my $card1 = $hand->{'cards'}->[1];
-			    
-			    my $newCard0 = deal(\@deck,\@discards);
-			    my $newCard1 = deal(\@deck,\@discards);
-			    
-			    $hand->{'cards'} = [$card0, $newCard0]; # dereferencing
-			    $newSpot{'cards'} = [$card1, $newCard1];
-			    
-			    $newSpot{'bet'} = $hand->{'bet'}; # not-dereferencing
-			    $newSpot{'pos'} = $hand->{'pos'};
-			    $newSpot{'splitID'} = $hand->{'splitID'} + 1;
-			    
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
 			    ++$splitsCnt[$hand->{'pos'}];
-			    
-			    unshift @places,\%newSpot;
+			    unshift @places,$newSpotRef;
 			    push @patPlaces,$hand; # "current" is now pat.
 			    undef $hand;
 			} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
@@ -245,26 +191,15 @@ print Dumper(\@places);
 			} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 0) {
 			    #line 12
 			    #split, unshift new, goto decision
-			    my %newSpot = %{$hand};
-			    my $card0 = $hand->{'cards'}->[0];
-			    my $card1 = $hand->{'cards'}->[1];
-			    
-			    my $newCard0 = deal(\@deck,\@discards);
-			    my $newCard1 = deal(\@deck,\@discards);
-			    
-			    $hand->{'cards'} = [$card0, $newCard0]; # dereferencing
-			    $newSpot{'cards'} = [$card1, $newCard1];
-			    
-			    $newSpot{'bet'} = $hand->{'bet'}; # not-dereferencing
-			    $newSpot{'pos'} = $hand->{'pos'};
-			    $newSpot{'splitID'} = $hand->{'splitID'} + 1;
-			    
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
 			    ++$splitsCnt[$hand->{'pos'}];
-			    
-			    unshift @places,\%newSpot;
+			    unshift @places,$newSpotRef;
 			} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
 			    #line 13
 			    #split, unshift new, incr splitsCnt, goto decision
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			    ++$splitsCnt[$hand->{'pos'}];
+			    unshift @places,$newSpotRef;
 			} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
 			    #line 14
 			    #goto decision
@@ -279,6 +214,9 @@ print Dumper(\@places);
 		    if($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
 			#line 19
 			#split, unshift new, incr splitsCnt, goto decision
+			($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			++$splitsCnt[$hand->{'pos'}];
+			unshift @places,$newSpotRef;
 		    } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
 			#line 20
 			#goto decision
@@ -288,12 +226,21 @@ print Dumper(\@places);
 		    } elsif($nrs == 0 && $rs3 == 0) {
 			#line 22
 			#split, unshift new, goto decision
+			($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			++$splitsCnt[$hand->{'pos'}];
+			unshift @places,$newSpotRef;
 		    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
 			#line 23
 			#split, unshift new, incr splitsCnt, goto decision
+			($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			++$splitsCnt[$hand->{'pos'}];
+			unshift @places,$newSpotRef;
 		    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
 			#line 24
 			#split, unshift new, incr splitsCnt, goto decision
+			($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			++$splitsCnt[$hand->{'pos'}];
+			unshift @places,$newSpotRef;
 		    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
 			#line 25
 			#goto decision
@@ -306,7 +253,7 @@ print Dumper(\@places);
 		}
 	    }
 
-
+exit(0);
 
 	    ## doubles handling
 
@@ -563,6 +510,29 @@ print "DO I GET HERE?3c\n";
     }
 }
 ##################################################################
+
+
+### sub splitHand
+sub splitHand {
+    (my $handRef, my $deckRef, my $discardsRef) = @_;
+
+    my %newSpot = %{$handRef};
+    my $card0 = $handRef->{'cards'}->[0];
+    my $card1 = $handRef->{'cards'}->[1];
+			    
+    my $newCard0 = deal($deckRef,$discardsRef);
+    my $newCard1 = deal($deckRef,$discardsRef);
+			    
+    $handRef->{'cards'} = [$card0, $newCard0]; # dereferencing
+    $newSpot{'cards'} = [$card1, $newCard1];
+			    
+    $newSpot{'bet'} = $handRef->{'bet'}; # not-dereferencing
+    $newSpot{'pos'} = $handRef->{'pos'};
+    $newSpot{'splitID'} = $handRef->{'splitID'} + 1;
+
+    return ($handRef, \%newSpot);
+}
+
 
 ### sub isAce
 sub isAce {
