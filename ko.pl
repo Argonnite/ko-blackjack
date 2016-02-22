@@ -253,20 +253,18 @@ exit(0);
 	    ## doubles handling
 	    if(defined $hand && scalar $hand == 2) {
 		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
-
-
-
 		    if(isSoft($hand)) {
 			$action = getAction(\@dealer, $hand, \%table);
 			if($da == 0) {
 			    #line 3
 			} elsif($da == 1 && $das == 1 && $ds == 1) {
 			} elsif($das == 1 && $ds == 0) {
-			} elsif($da == 1 && $das == 0 && $ds == 1) {
-
-
-
-		    } else {
+			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
+			} else {
+			    #FAILTHROUGH
+			}
+		    } else { #~isSoft
 		    }
 
 
