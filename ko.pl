@@ -251,170 +251,34 @@ print Dumper(\@places);
 exit(0);
 
 	    ## doubles handling
-	    $action = getAction(\@dealer, $hand, \%table);
-#FIXME: check if two cards only.
-	    if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
+	    if(defined $hand && scalar $hand == 2) {
+		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
+
+
+
+		    if(isSoft($hand)) {
+			$action = getAction(\@dealer, $hand, \%table);
+			if($da == 0) {
+			    #line 3
+			} elsif($da == 1 && $das == 1 && $ds == 1) {
+			} elsif($das == 1 && $ds == 0) {
+			} elsif($da == 1 && $das == 0 && $ds == 1) {
+
+
+
+		    } else {
+		    }
+
+
+		}
 	    }
 
 
 	    ## hit or stand or surrender handling
+##FIXME: su only on 2 cards?
 	    $action = getAction(\@dealer, $hand, \%table);
 
 
-#	    ## lookup player actions.
-#	    if(isNatural($hand->{'cards'})) { #bj?
-#		$action = "bj";
-#	    } elsif(isPair($hand->{'cards'})) { #split?
-#		if(isAce($pRank)) {  # ace splits
-#		    if($splitsCnt[$hand->{'splID'}] == 0) { # the original aces
-#			$action = $table{$pRank . $pRank}{$dRank};
-#		    } else {
-#			if($rsa) {
-#			    if($rsa3) {
-#				if($splitsCnt[$hand->{'pos'}] < 2) {
-#print "DO I GET HERE?99\n";
-#				    $action = $table{$pRank . $pRank}{$dRank};
-#				} else {
-#print "DO I GET HERE?AA\n";
-#				    $action = 's'; # limit hits on split aces.
-#				}
-#			    } else {
-#print "DO I GET HERE?BB\n";
-#				$action = $table{$pRank . $pRank}{$dRank};
-#			    }
-#			} else {
-#print "DO I GET HERE?CC\n";
-#			    $action = 's'; # limit hits on split aces.
-#			}
-#		    }
-#		} else { # non-ace splits.
-#		    if($rs3) {
-#			if($splitsCnt[$hand->{'pos'}] < 2) {
-#			    $action = $table{$pRank . $pRank}{$dRank};
-#			} else {
-#			    if(isSoft($hand->{'cards'})) { #soft?
-#				if($bestTotal >= 19) {
-#				    $action = 's';
-#				} else {
-#				    $action = $table{'s' . $bestTotal}{$dRank};
-#				}
-#			    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
-#				if($bestTotal >= 17) {
-#				    $action = 's';
-#				} else {
-#				    if(not exists $table{$bestTotal}{$dRank}) {
-#					$action = $table{"h" . $bestTotal}{$dRank};
-#				    } else {
-#					$action = $table{$bestTotal}{$dRank};
-#				    }
-#				}
-#			    }
-#			}
-#		    } else {
-#			$action = $table{$pRank . $pRank}{$dRank};
-#		    }
-#		}
-#	    } elsif(isSoft($hand->{'cards'})) { #soft?
-#		if($bestTotal >= 19) {
-#		    $action = 's';
-#		} else {
-#		    $action = $table{'s' . $bestTotal}{$dRank};
-#		}
-#	    } elsif(!isSoft($hand->{'cards'})) { #it must be hard
-#		if($bestTotal >= 17) {
-#		    $action = 's';
-#		} else {
-#		    if(not exists $table{$bestTotal}{$dRank}) {
-#			$action = $table{"h" . $bestTotal}{$dRank};
-#		    } else {
-#			$action = $table{$bestTotal}{$dRank};
-#		    }
-#		}
-#	    } else {
-#		print "ERROR:  Table lookup.\n";
-#		exit(0);
-#	    }
-#	    if($DEBUG) {
-#		print "ACTION: $action\n";
-#	    }
-#
-#
-#	    ## execute player actions.
-#	    if($action eq 'sp') { ### split
-#		if($DEBUG) {
-#		    print "SPLITTING\n";
-#		}
-#
-#		my %newSpot = %{$hand};
-#		my $card0 = $hand->{'cards'}->[0];
-#		my $card1 = $hand->{'cards'}->[1];
-#
-#		my $newCard0 = deal(\@deck,\@discards);
-#		my $newCard1 = deal(\@deck,\@discards);
-#
-#		$hand->{'cards'} = [$card0, $newCard0]; # dereferencing
-#		$newSpot{'cards'} = [$card1, $newCard1];
-#
-#		$newSpot{'bet'} = $hand->{'bet'}; # not-dereferencing
-#		$newSpot{'pos'} = $hand->{'pos'};
-#		$newSpot{'splitID'} = $hand->{'splitID'} + 1;
-#
-#		++$splitsCnt[$hand->{'pos'}];
-#
-#		unshift @places,$hand;
-#		unshift @places,\%newSpot;
-#	    } elsif($action eq 's') { ### stand pat
-#		if($DEBUG) {
-#		    print "PAT\n";
-#		}
-#		push @patPlaces,$hand;
-##FIXME: break up below compound condition.
-#	    } elsif($action eq 'dh' or $action eq 'd' or $action eq 'ds') { ### double down
-##FIXME: check if two cards only.
-#		if($DEBUG) {
-#		    print "DOUBLING\n";
-#		}
-#		$hand->{'bet'} = $hand->{'bet'} * 2;
-#		my $doubleCard = deal(\@deck,\@discards);
-#		push @{$hand->{'cards'}},$doubleCard;
-#		if(isBusted($hand->{'cards'})) { ### busted
-#		    $hand->{'busted'} = "yes";
-#		    push @bustedPlaces,$hand;
-#		} else {
-#		    push @patPlaces,$hand;
-#		}
-##FIXME: break up below compound condition.
-#	    } elsif($action eq 'su' or $action eq 'h') { ### hitting
-##FIXME: su only on 2 cards?
-#		if($DEBUG) {
-#		    print "HITTING\n";
-#		}
-#		push @{$hand->{'cards'}},deal(\@deck,\@discards);
-#		if(isBusted($hand->{'cards'})) { ### busted
-#		    $hand->{'busted'} = "yes";
-#		    push @bustedPlaces,$hand;
-#		} else {
-#		    unshift @places,$hand;
-#		}
-#	    } elsif($action eq 'bj') { ### blackjack
-#		push @patPlaces,$hand;
-#	    } else {
-#		print "ERROR: unfound action $action\n";
-#		exit(0);
-#	    }
-#
-#	    print "---PAUSE---\n";
-#	    print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
-#	    my $key = <>;
-#	    print "PLACES\n";
-#	    print Dumper(\@places);
-#	    print "BUSTEDPLACES\n";
-#	    print Dumper(\@bustedPlaces);
-#	    print "PATPLACES\n";
-#	    print Dumper(\@patPlaces);
-#
-#
-#	}
 
 
         ### dealer actions
