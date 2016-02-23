@@ -18,7 +18,6 @@ my $spreadMax;
 my $RCmin;           # running min count reached for the shoe
 my $RCmax;           # running max count reached for the shoe
 my $spotsLimit = 2;  # number of those seated
-my $bjPayout = 1.5;
 my $esAllowed;       # early surrender
 my $lsAllowed;       # late surrender
 my $rsa = 1;         # resplit aces allowed
@@ -32,7 +31,7 @@ my $hsa = 0;         # can hit after splitting aces
 my $nsa = 0;         # no splitting of aces
 my $nrs = 0;         # no resplitting
 my $h17 = 1;         # dealer hits soft 17
-my $bj65 = 0;        # blackjack pays 6:5 instead of 3:2
+my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
 
 
 my %table = ();
@@ -129,145 +128,165 @@ print Dumper(\@places);
 	    ## splits handling
 	    $action = getAction(\@dealer, $hand, \%table);
 	    if($action eq 'sp') {
-	      if(isPair($hand->{'cards'})) {
-		if(getRank($hand->{'cards'}->[0]) eq 'a') {
-		  if($nsa == 0) {
-		    if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
-		      #line 3
-		      #split, unshift new, incr splitsCnt, pat current
-		      ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		      ++$splitsCnt[$hand->{'pos'}];
-		      unshift @places,$newSpotRef;
-		      push @patPlaces,$hand; # "current" is now pat.
-		      undef $hand;
-		    } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
-		      #line 4
-		      #pat current
-		      push @patPlaces,$hand;
-		      undef $hand;
-		    } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] >= 2) {
-		      #line 5
-		      #ERROR
-		    } elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
-		      #line 6
-		      #split, unshift new, incr splitsCnt, goto decision
-		      ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		      ++$splitsCnt[$hand->{'pos'}];
-		      unshift @places,$newSpotRef;
-		    } elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
-		      #line 7
-		      #goto decision
-		    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 0) {
-		      #line 8
-		      #split, unshift new, pat current
-		      ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		      ++$splitsCnt[$hand->{'pos'}];
-		      unshift @places,$newSpotRef;
-		      push @patPlaces,$hand; # "current" is now pat.
-		      undef $hand;
-		    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
-		      print "DEBUG: LINE9\n";
-		      #line 9
-		      #split, unshift new, incr splitsCnt, pat current
-		      ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		      ++$splitsCnt[$hand->{'pos'}];
-		      unshift @places,$newSpotRef;
-		      push @patPlaces,$hand; # "current" is now pat.
-		      undef $hand;
-		    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-		      #line 10
-		      #pat current
-		      push @patPlaces,$hand; # "current" is now pat.
-		      undef $hand;
-		    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
-		      #line 11
-		      #ERROR
-		    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 0) {
-		      #line 12
-		      #split, unshift new, goto decision
-		      ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		      ++$splitsCnt[$hand->{'pos'}];
-		      unshift @places,$newSpotRef;
-		    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
-		      #line 13
-		      #split, unshift new, incr splitsCnt, goto decision
-		      ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		      ++$splitsCnt[$hand->{'pos'}];
-		      unshift @places,$newSpotRef;
-		    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-		      #line 14
-		      #goto decision
-		    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
-		      #line 15
-		      #ERROR
-		    } else {
-		      #FAILTHROUGH
+		if(isPair($hand->{'cards'})) {
+		    if(isAce($hand->{'cards'}->[0])) {
+			if($nsa == 0) {
+			    if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
+				#line 3
+				#split, unshift new, incr splitsCnt, pat current
+				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+				++$splitsCnt[$hand->{'pos'}];
+				unshift @places,$newSpotRef;
+				push @patPlaces,$hand; # "current" is now pat.
+				undef $hand;
+			    } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
+				#line 4
+				#pat current
+				push @patPlaces,$hand;
+				undef $hand;
+			    } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] >= 2) {
+				#line 5
+				#ERROR
+			    } elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
+				#line 6
+				#split, unshift new, incr splitsCnt, goto decision
+				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+				++$splitsCnt[$hand->{'pos'}];
+				unshift @places,$newSpotRef;
+			    } elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
+				#line 7
+				#goto decision
+			    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 0) {
+				#line 8
+				#split, unshift new, pat current
+				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+				++$splitsCnt[$hand->{'pos'}];
+				unshift @places,$newSpotRef;
+				push @patPlaces,$hand; # "current" is now pat.
+				undef $hand;
+			    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
+				print "DEBUG: LINE9\n";
+				#line 9
+				#split, unshift new, incr splitsCnt, pat current
+				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+				++$splitsCnt[$hand->{'pos'}];
+				unshift @places,$newSpotRef;
+				push @patPlaces,$hand; # "current" is now pat.
+				undef $hand;
+			    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+				#line 10
+				#pat current
+				push @patPlaces,$hand; # "current" is now pat.
+				undef $hand;
+			    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+				#line 11
+				#ERROR
+			    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 0) {
+				#line 12
+				#split, unshift new, goto decision
+				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+				++$splitsCnt[$hand->{'pos'}];
+				unshift @places,$newSpotRef;
+			    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
+				#line 13
+				#split, unshift new, incr splitsCnt, goto decision
+				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+				++$splitsCnt[$hand->{'pos'}];
+				unshift @places,$newSpotRef;
+			    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+				#line 14
+				#goto decision
+			    } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+				#line 15
+				#ERROR
+			    } else {
+				#FAILTHROUGH
+			    }
+			} #else gotoDecision
+		    } else { #~isA & isPair
+			if($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			    #line 19
+			    #split, unshift new, incr splitsCnt, goto decision
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			    ++$splitsCnt[$hand->{'pos'}];
+			    unshift @places,$newSpotRef;
+			} elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
+			    #line 20
+			    #goto decision
+			} elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+			    #line 21
+			    #ERROR
+			} elsif($nrs == 0 && $rs3 == 0) {
+			    #line 22
+			    #split, unshift new, goto decision
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			    ++$splitsCnt[$hand->{'pos'}];
+			    unshift @places,$newSpotRef;
+			} elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			    #line 23
+			    #split, unshift new, incr splitsCnt, goto decision
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			    ++$splitsCnt[$hand->{'pos'}];
+			    unshift @places,$newSpotRef;
+			} elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
+			    #line 24
+			    #split, unshift new, incr splitsCnt, goto decision
+			    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+			    ++$splitsCnt[$hand->{'pos'}];
+			    unshift @places,$newSpotRef;
+			} elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+			    #line 25
+			    #goto decision
+			} elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+			    #line 26
+			    #ERROR
+			} else {
+			    #FAILTHROUGH
+			}
 		    }
-		  } #else gotoDecision
-		} else { #~isA & isPair
-		  if($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
-		    #line 19
-		    #split, unshift new, incr splitsCnt, goto decision
-		    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		    ++$splitsCnt[$hand->{'pos'}];
-		    unshift @places,$newSpotRef;
-		  } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
-		    #line 20
-		    #goto decision
-		  } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-		    #line 21
-		    #ERROR
-		  } elsif($nrs == 0 && $rs3 == 0) {
-		    #line 22
-		    #split, unshift new, goto decision
-		    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		    ++$splitsCnt[$hand->{'pos'}];
-		    unshift @places,$newSpotRef;
-		  } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
-		    #line 23
-		    #split, unshift new, incr splitsCnt, goto decision
-		    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		    ++$splitsCnt[$hand->{'pos'}];
-		    unshift @places,$newSpotRef;
-		  } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
-		    #line 24
-		    #split, unshift new, incr splitsCnt, goto decision
-		    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-		    ++$splitsCnt[$hand->{'pos'}];
-		    unshift @places,$newSpotRef;
-		  } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-		    #line 25
-		    #goto decision
-		  } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
-		    #line 26
-		    #ERROR
-		  } else {
-		    #FAILTHROUGH
-		  }
 		}
-	      }
 	    }
-
+	    
 exit(0);
 
 	    ## doubles handling
 	    if(defined $hand && scalar $hand == 2) {
 		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
-		    if(isSoft($hand)) {
+		    if(hasAce($hand)) {
 			$action = getAction(\@dealer, $hand, \%table);
 			if($da == 0) {
 			    #line 3
+			    #pat current
 			} elsif($da == 1 && $das == 1 && $ds == 1) {
+			    #line 4
+			    #dd, pat current
+#FIXME: debug this.
+			    pushd $hand->{'cards'},deal(\@deck,\@discards);
+			    push @patPlaces,$hand; # "current" is now pat.
+			    undef $hand;
 			} elsif($das == 1 && $ds == 0) {
+			    #line 5
+			    #ERROR
 			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			    #line 6
+			    #dd, pat current
 			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
+			    #line 7
+			    #goto decision
 			} else {
 			    #FAILTHROUGH
 			}
-		    } else { #~isSoft
+		    } else { #~hasAce
+			if($ds == 0) {
+			    #line 11
+			    #goto decision
+			} elsif($ds == 1) {
+			    #line 12
+			    #dd, pat current
+			} else {
+			    #FAILTHROUGH
+			}
 		    }
-
-
 		}
 	    }
 
@@ -438,6 +457,17 @@ sub splitHand {
     $newSpot{'splitID'} = $handRef->{'splitID'} + 1;
 
     return ($handRef, \%newSpot);
+}
+
+
+### sub hasAce
+sub hasAce {
+    my $handRef = shift(@_);
+    if(isAce($handRef->{'cards'}->[0]) or isAce($handRef->{'cards'}->[1])) {
+	return 1;
+    } else {
+	return 0;
+    }
 }
 
 
