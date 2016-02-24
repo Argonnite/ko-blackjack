@@ -4,9 +4,6 @@ use Scalar::Util qw/looks_like_number/;
 
 my $DEBUG = 1;
 
-#FIXME: action granularities and flags
-#FIXME: make sure doubling happens only on 2 cards
-
 
 #my $nDecks = 8;      # size of shoe
 #my $cut = 1;         # penetration in number of decks unseen
@@ -59,7 +56,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
     while(scalar @deck > $fPenetrationCard) { #deal a round
 
-	### IRC before dealing round
+	### initial running count (IRC) before dealing round
 	my $runningCountAtStartOfHand = $runningCount;
 	print "IRC: $runningCountAtStartOfHand\n";
 
@@ -67,7 +64,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	my @dealer;
 	push @dealer,deal(\@deck,\@discards);
 	push @dealer,deal(\@deck,\@discards);
-	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
 
         ### players' cards
 	my @places;
@@ -78,50 +74,49 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	    push @places,{('bet' => $bet, 'cards' => [deal(\@deck,\@discards), deal(\@deck,\@discards)], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand)};
 	    $splitsCnt[$i] = 0;
 	}
-	if($DEBUG) {
-	    print "INITPLACES\n";
-	    print Dumper(\@places);
-	}
+#	if($DEBUG) {
+#	    print "INITPLACES\n";
+#	    print Dumper(\@places);
+#	}
 
         ### players' hits
 	my @patPlaces;
 	my @bustedPlaces;
 
 
+        ### load a test
+	my $command = do { local $/; open(I,'test_sp_line3.txt'); <I> };
+	eval $command;
+#	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+	print "DEALER: ";
+	print Dumper(\@dealer);
+	print "DECK: ";
+	print Dumper(\@deck);
+	print "PLACES: ";
+	print Dumper(\@places);
+	print "CURRENT: ";
+	print Dumper($hand);
+	print "PATPLACES: ";
+	print Dumper(\@patPlaces);
 
-
-###TESTING HERE###
-print "###TESTING HERE###\n";
-@deck = ( 'ag', '5c', 'as', '7c', 'kd', '4h', 'ah', 'qs');
-unshift @deck,"ae";
-unshift @deck,"af";
-print Dumper(\@deck);
-print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
-print "PLACES\n";
-$places[0]{'cards'}[0] = "aa";
-$places[0]{'cards'}[1] = "ab";
-print Dumper(\@places);
-#exit(0);
 
 
 #FIXME: check dealer bj before player actions.
 
 	while (scalar @places) {
 	    my $hand = shift @places;
-#	    my @totalsAry = getTotals($hand->{'cards'});
-#	    my $bestTotal = bestTotal(\@totalsAry);
 
-	    if($DEBUG) {
-		print "WORKING ON:\n";
-		print Dumper($hand->{'cards'});
-		print "POS: " . $hand->{'pos'} . ", ";
-		print "SplID: " . $hand->{'splitID'} . "\n";
-		print "ISPAIR: " . isPair($hand->{'cards'}) . "\n";
-		print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
-		print "BESTTOT: $bestTotal\n";
-		print "ISNATURAL: " . isNatural($hand->{'cards'}) . "\n";
-		print "SPLITSCNT: $splitsCnt[$hand->{'pos'}]\n";
-	    }
+#	    if($DEBUG) {
+#		print "\nWORKING ON:\n";
+#		print Dumper($hand->{'cards'});
+#		print "POS: " . $hand->{'pos'} . ", ";
+#		print "SplID: " . $hand->{'splitID'} . "\n";
+#		print "ISPAIR: " . isPair($hand->{'cards'}) . "\n";
+#		print "ISSOFT: " . isSoft($hand->{'cards'}) . "\n";
+#		print "BESTTOT: $bestTotal\n";
+#		print "ISNATURAL: " . isNatural($hand->{'cards'}) . "\n";
+#		print "SPLITSCNT: $splitsCnt[$hand->{'pos'}]\n";
+#	    }
 
 	    my $action;
 
@@ -130,7 +125,7 @@ print Dumper(\@places);
 	    if($action eq 'sp') {
 		if(isPair($hand->{'cards'})) {
 		    if(isAce($hand->{'cards'}->[0])) {
-			if($nsa == 0) {
+			if($nsa == 0) { #splitting aces allowed.
 			    if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
 				#line 3
 				#split, unshift new, incr splitsCnt, pat current
@@ -139,6 +134,18 @@ print Dumper(\@places);
 				unshift @places,$newSpotRef;
 				push @patPlaces,$hand; # "current" is now pat.
 				undef $hand;
+#	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+	print "DEALER: ";
+	print Dumper(\@dealer);
+	print "DECK: ";
+	print Dumper(\@deck);
+	print "PLACES: ";
+	print Dumper(\@places);
+	print "CURRENT: ";
+	print Dumper($hand);
+	print "PATPLACES: ";
+	print Dumper(\@patPlaces);
+
 			    } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
 				#line 4
 				#pat current
@@ -246,155 +253,166 @@ print Dumper(\@places);
 		    }
 		}
 	    }
-	    
-exit(0);
-
-	    ## doubles handling
-	    if(defined $hand && scalar $hand == 2) {
-		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
-		    if(hasAce($hand)) {
-			$action = getAction(\@dealer, $hand, \%table);
-			if($da == 0) {
-			    #line 3
-			    #pat current
-			} elsif($da == 1 && $das == 1 && $ds == 1) {
-			    #line 4
-			    #dd, pat current
-#FIXME: debug this.
-			    pushd $hand->{'cards'},deal(\@deck,\@discards);
-			    push @patPlaces,$hand; # "current" is now pat.
-			    undef $hand;
-			} elsif($das == 1 && $ds == 0) {
-			    #line 5
-			    #ERROR
-			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
-			    #line 6
-			    #dd, pat current
-			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
-			    #line 7
-			    #goto decision
-			} else {
-			    #FAILTHROUGH
-			}
-		    } else { #~hasAce
-			if($ds == 0) {
-			    #line 11
-			    #goto decision
-			} elsif($ds == 1) {
-			    #line 12
-			    #dd, pat current
-			} else {
-			    #FAILTHROUGH
-			}
-		    }
-		}
-	    }
-
-
-	    ## hit or stand or surrender handling
-##FIXME: su only on 2 cards?
-	    $action = getAction(\@dealer, $hand, \%table);
-
-
-
-
-        ### dealer actions
-	my @dealerTotalsAry = getTotals(\@dealer);
-	my $dealerBest = bestTotal(\@dealerTotalsAry);
-	print "Dealer: " . join(' ',@dealer) . "\n";
-	print "DealerTots: " . Dumper(\@dealerTotalsAry);
-	print "DealerBest: $dealerBest\n";
-
-
-	while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
-	    print "---DEALER PAUSE---\n";
-	    my $key = <>;
-	    my $dealerCard = deal(\@deck,\@discards);
-	    push @dealer,$dealerCard;
-	    @dealerTotalsAry = getTotals(\@dealer);
-	    $dealerBest = bestTotal(\@dealerTotalsAry);
-	    print "DEALER HITTING.\n";
-	    print "DEALER: " . join(' ',@dealer) . "\n";
-	    print "DEALERTOTS: " . Dumper(\@dealerTotalsAry);
-	    print "DEALERBEST: $dealerBest\n";
 	}
-
-
-        ### collections, payouts, and discards
-	print "BLAHBLAHBLAH\n";
-	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
-	print "PLACES\n";
-	print Dumper(\@places);
-	print "BUSTEDPLACES\n";
-	print Dumper(\@bustedPlaces);
-
-#FIXME: naturals
-#FIXME: pushing naturals 
-#FIXME: split then naturals? NO.
-#FIXME: record dInit and pInitInit
-
-	### determine winners/losers
-	if(isBusted(\@dealer)) {
-	    foreach my $patHand (@patPlaces) {
-print "DO I GET HERE?1\n";
-		if(isNatural($patHand->{'cards'})) {
-		    if($splitsCnt[$patHand->{'pos'}] == 0) {
-			$patHand->{'won'} = "bj";
-		    } else {
-			$patHand->{'won'} = "yes";
-		    }
-		} else {
-		    $patHand->{'won'} = "yes";
-		}
-	    }
-	} elsif(isNatural(\@dealer)) {
-print "DO I GET HERE?2\n";
-	    foreach my $patHand (@patPlaces) {
-		if(isNatural($patHand->{'cards'})) {
-		    $patHand->{'pushed'} = "yes";
-		} else {
-		    $patHand->{'lost'} = "yes";
-		}
-	    }
-	} else {
-print "DO I GET HERE?3\n";
-	    foreach my $patHand (@patPlaces) {
-		my @tmp = getTotals($patHand->{'cards'});
-		my $pTot = bestTotal(\@tmp);
-print "TMP: " . Dumper(\@tmp);
-print "PTOT = $pTot\n";
-		if($pTot > $dealerBest) {
-print "DO I GET HERE?3a\n";
-		    if(isNatural($patHand->{'cards'})) {
-			$patHand->{'won'} = "bj";
-		    } else {
-			$patHand->{'won'} = "yes";
-		    }
-		} elsif($pTot < $dealerBest) {
-print "DO I GET HERE?3b\n";
-		    $patHand->{'lost'} = "yes";
-		} else {
-print "DO I GET HERE?3c\n";
-		    $patHand->{'pushed'} = "yes";
-		}
-	    }
-	}
-	print "PATPLACES\n";
-	print Dumper(\@patPlaces);
-
-
-	print "REMAINING: " . scalar @deck . "\n";
-	print "CUTPOINT: $fPenetrationCard\n";
-	print "RC: $runningCount\n";
-	exit(0);
-
     }
+	    
+
+#	    ## doubles handling
+#	    if(defined $hand && scalar $hand == 2) {
+#		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
+#		    if(hasAce($hand)) {
+#			$action = getAction(\@dealer, $hand, \%table);
+#			if($da == 0) {
+#			    #line 3
+#			    #pat current
+#			} elsif($da == 1 && $das == 1 && $ds == 1) {
+#			    #line 4
+#			    #dd, pat current
+##FIXME: debug this.
+#			    pushd $hand->{'cards'},deal(\@deck,\@discards);
+#			    push @patPlaces,$hand; # "current" is now pat.
+#			    undef $hand;
+#			} elsif($das == 1 && $ds == 0) {
+#			    #line 5
+#			    #ERROR
+#			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+#			    #line 6
+#			    #dd, pat current
+#			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
+#			    #line 7
+#			    #goto decision
+#			} else {
+#			    #FAILTHROUGH
+#			}
+#		    } else { #~hasAce
+#			if($ds == 0) {
+#			    #line 11
+#			    #goto decision
+#			} elsif($ds == 1) {
+#			    #line 12
+#			    #dd, pat current
+#			} else {
+#			    #FAILTHROUGH
+#			}
+#		    }
+#		}
+#	    }
+#
+#
+#	    ## hit or stand or surrender handling
+###FIXME: su only on 2 cards?
+#	    $action = getAction(\@dealer, $hand, \%table);
+#
+#
+#
+#
+#        ### dealer actions
+#	my @dealerTotalsAry = getTotals(\@dealer);
+#	my $dealerBest = bestTotal(\@dealerTotalsAry);
+#	print "Dealer: " . join(' ',@dealer) . "\n";
+#	print "DealerTots: " . Dumper(\@dealerTotalsAry);
+#	print "DealerBest: $dealerBest\n";
+#
+#
+#	while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
+#	    print "---DEALER PAUSE---\n";
+#	    my $key = <>;
+#	    my $dealerCard = deal(\@deck,\@discards);
+#	    push @dealer,$dealerCard;
+#	    @dealerTotalsAry = getTotals(\@dealer);
+#	    $dealerBest = bestTotal(\@dealerTotalsAry);
+#	    print "DEALER HITTING.\n";
+#	    print "DEALER: " . join(' ',@dealer) . "\n";
+#	    print "DEALERTOTS: " . Dumper(\@dealerTotalsAry);
+#	    print "DEALERBEST: $dealerBest\n";
+#	}
+#
+#
+#        ### collections, payouts, and discards
+#	print "BLAHBLAHBLAH\n";
+#	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
+#	print "PLACES\n";
+#	print Dumper(\@places);
+#	print "BUSTEDPLACES\n";
+#	print Dumper(\@bustedPlaces);
+#
+##FIXME: naturals
+##FIXME: pushing naturals 
+##FIXME: split then naturals? NO.
+##FIXME: record dInit and pInitInit
+#
+#	### determine winners/losers
+#	if(isBusted(\@dealer)) {
+#	    foreach my $patHand (@patPlaces) {
+#print "DO I GET HERE?1\n";
+#		if(isNatural($patHand->{'cards'})) {
+#		    if($splitsCnt[$patHand->{'pos'}] == 0) {
+#			$patHand->{'won'} = "bj";
+#		    } else {
+#			$patHand->{'won'} = "yes";
+#		    }
+#		} else {
+#		    $patHand->{'won'} = "yes";
+#		}
+#	    }
+#	} elsif(isNatural(\@dealer)) {
+#print "DO I GET HERE?2\n";
+#	    foreach my $patHand (@patPlaces) {
+#		if(isNatural($patHand->{'cards'})) {
+#		    $patHand->{'pushed'} = "yes";
+#		} else {
+#		    $patHand->{'lost'} = "yes";
+#		}
+#	    }
+#	} else {
+#print "DO I GET HERE?3\n";
+#	    foreach my $patHand (@patPlaces) {
+#		my @tmp = getTotals($patHand->{'cards'});
+#		my $pTot = bestTotal(\@tmp);
+#print "TMP: " . Dumper(\@tmp);
+#print "PTOT = $pTot\n";
+#		if($pTot > $dealerBest) {
+#print "DO I GET HERE?3a\n";
+#		    if(isNatural($patHand->{'cards'})) {
+#			$patHand->{'won'} = "bj";
+#		    } else {
+#			$patHand->{'won'} = "yes";
+#		    }
+#		} elsif($pTot < $dealerBest) {
+#print "DO I GET HERE?3b\n";
+#		    $patHand->{'lost'} = "yes";
+#		} else {
+#print "DO I GET HERE?3c\n";
+#		    $patHand->{'pushed'} = "yes";
+#		}
+#	    }
+#	}
+#	print "PATPLACES\n";
+#	print Dumper(\@patPlaces);
+#
+#
+#	print "REMAINING: " . scalar @deck . "\n";
+#	print "CUTPOINT: $fPenetrationCard\n";
+#	print "RC: $runningCount\n";
+#	exit(0);
+#
+#    }
 }
+
+
+
+
+
 ##################################################################
 
 ### sub getAction
 sub getAction {
   (my $dealerRef, my $handRef, my $tableRef) = @_;
+
+
+#FIXME: what if nsa==1 and aa?
+
+
 
   my $action;
   my $pRank = getRank($handRef->{'cards'}->[0]);
@@ -406,8 +424,14 @@ sub getAction {
     print "DRANK: $dRank\n";
   }
 
-  my @totalsAry = getTotals($hand->{'cards'});
+  my @totalsAry = getTotals($handRef->{'cards'});
   my $bestTotal = bestTotal(\@totalsAry);
+  if($bestTotal == -1) {
+      print "ERROR: busted lookup.\n";
+      exit(1);
+  }
+print "BLAH1 $tableRef->{$pRank . $pRank}->{$dRank}\n";
+print "BLAH2 $tableRef->{$pRank . $pRank}{$dRank}\n";
 
   if(isPair($handRef->{'cards'})) { #split?
     $action = $tableRef->{$pRank . $pRank}->{$dRank};
@@ -419,6 +443,7 @@ sub getAction {
       $action = $tableRef->{'s' . $bestTotal}->{$dRank};
     }
   }
+print "BLAH5 $action\n";
   if(!isSoft($handRef->{'cards'})) { #it must be hard
     if($bestTotal >= 17) {
       $action = 's';
@@ -434,41 +459,42 @@ sub getAction {
     print "ERROR: action undefined.\n";
     exit(1);
   }
+exit(0);
   return $action;
 }
 
 
-### sub splitHand
-sub splitHand {
-    (my $handRef, my $deckRef, my $discardsRef) = @_;
-
-    my %newSpot = %{$handRef};
-    my $card0 = $handRef->{'cards'}->[0];
-    my $card1 = $handRef->{'cards'}->[1];
-
-    my $newCard0 = deal($deckRef,$discardsRef);
-    my $newCard1 = deal($deckRef,$discardsRef);
-
-    $handRef->{'cards'} = [$card0, $newCard0]; # dereferencing
-    $newSpot{'cards'} = [$card1, $newCard1];
-
-    $newSpot{'bet'} = $handRef->{'bet'}; # not-dereferencing
-    $newSpot{'pos'} = $handRef->{'pos'};
-    $newSpot{'splitID'} = $handRef->{'splitID'} + 1;
-
-    return ($handRef, \%newSpot);
-}
-
-
-### sub hasAce
-sub hasAce {
-    my $handRef = shift(@_);
-    if(isAce($handRef->{'cards'}->[0]) or isAce($handRef->{'cards'}->[1])) {
-	return 1;
-    } else {
-	return 0;
-    }
-}
+#### sub splitHand
+#sub splitHand {
+#    (my $handRef, my $deckRef, my $discardsRef) = @_;
+#
+#    my %newSpot = %{$handRef};
+#    my $card0 = $handRef->{'cards'}->[0];
+#    my $card1 = $handRef->{'cards'}->[1];
+#
+#    my $newCard0 = deal($deckRef,$discardsRef);
+#    my $newCard1 = deal($deckRef,$discardsRef);
+#
+#    $handRef->{'cards'} = [$card0, $newCard0]; # dereferencing
+#    $newSpot{'cards'} = [$card1, $newCard1];
+#
+#    $newSpot{'bet'} = $handRef->{'bet'}; # not-dereferencing
+#    $newSpot{'pos'} = $handRef->{'pos'};
+#    $newSpot{'splitID'} = $handRef->{'splitID'} + 1;
+#
+#    return ($handRef, \%newSpot);
+#}
+#
+#
+#### sub hasAce
+#sub hasAce {
+#    my $handRef = shift(@_);
+#    if(isAce($handRef->{'cards'}->[0]) or isAce($handRef->{'cards'}->[1])) {
+#	return 1;
+#    } else {
+#	return 0;
+#    }
+#}
 
 
 ### sub isAce
@@ -509,24 +535,25 @@ sub deal {
 }
 
 
-### sub KOVal
-sub KOVal {
-    my $card = shift(@_);
-    my $rank = substr($card,0,1);
-    if($rank =~ /[akqjt]/) {
-	return -1;
-    } elsif ($rank > 1 and $rank < 8) {
-	return 1;
-    } else {
-	return 0;
-    }
-}
+#### sub KOVal
+#sub KOVal {
+#    my $card = shift(@_);
+#    my $rank = substr($card,0,1);
+#    if($rank =~ /[akqjt]/) {
+#	return -1;
+#    } elsif ($rank > 1 and $rank < 8) {
+#	return 1;
+#    } else {
+#	return 0;
+#    }
+#}
 
 
 ### sub generate
 sub generate {
     my $tableRef = shift(@_);
     my @textTable;
+# DEALER UPCARD            2  3  4  5  6  7  8  9  t  a
     push @textTable,"aa   sp sp sp sp sp sp sp sp sp sp";
     push @textTable,"tt    s  s  s  s  s  s  s  s  s  s";
     push @textTable,"99   sp sp sp sp sp  s sp sp  s  s";
@@ -537,29 +564,29 @@ sub generate {
     push @textTable,"44    h  h  h  h  h  h  h  h  h  h";
     push @textTable,"33    h  h sp sp sp sp  h  h  h  h";
     push @textTable,"22    h  h sp sp sp sp  h  h  h  h";
-    push @textTable,"h17    s  s  s  s  s  s  s  s  s  s";
-    push @textTable,"h16    s  s  s  s  s  h  h su su su";
-    push @textTable,"h15    s  s  s  s  s  h  h  h su  h";
-    push @textTable,"h14    s  s  s  s  s  h  h  h  h  h";
-    push @textTable,"h13    s  s  s  s  s  h  h  h  h  h";
-    push @textTable,"h12    s  s  s  s  s  h  h  h  h  h";
-    push @textTable,"11    dh dh dh dh dh dh dh dh dh  h";
-    push @textTable,"10    dh dh dh dh dh dh dh dh  h  h";
-    push @textTable," 9     h dh dh dh dh  h  h  h  h  h";
-    push @textTable," 8     h  h  h  h  h  h  h  h  h  h";
-    push @textTable," 7     h  h  h  h  h  h  h  h  h  h";
-    push @textTable," 6     h  h  h  h  h  h  h  h  h  h";
-    push @textTable," 5     h  h  h  h  h  h  h  h  h  h";
-    push @textTable," 4     h  h  h  h  h  h  h  h  h  h";
-    push @textTable," 3     h  h  h  h  h  h  h  h  h  h";
-    push @textTable," 2     h  h  h  h  h  h  h  h  h  h";
-    push @textTable,"s19    s  s  s  s  s  s  s  s  s  s";
-    push @textTable,"s18    s ds ds ds ds  s  s  h  h  h";
-    push @textTable,"s17    h dh dh dh dh  h  h  h  h  h";
-    push @textTable,"s16    h  h dh dh dh  h  h  h  h  h";
-    push @textTable,"s15    h  h dh dh dh  h  h  h  h  h";
-    push @textTable,"s14    h  h  h dh dh  h  h  h  h  h";
-    push @textTable,"s13    h  h  h dh dh  h  h  h  h  h";
+    push @textTable,"h17   s  s  s  s  s  s  s  s  s  s";
+    push @textTable,"h16   s  s  s  s  s  h  h su su su";
+    push @textTable,"h15   s  s  s  s  s  h  h  h su  h";
+    push @textTable,"h14   s  s  s  s  s  h  h  h  h  h";
+    push @textTable,"h13   s  s  s  s  s  h  h  h  h  h";
+    push @textTable,"h12   s  s  s  s  s  h  h  h  h  h";
+    push @textTable," 11  dh dh dh dh dh dh dh dh dh  h";
+    push @textTable," 10  dh dh dh dh dh dh dh dh  h  h";
+    push @textTable,"  9   h dh dh dh dh  h  h  h  h  h";
+    push @textTable,"  8   h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"  7   h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"  6   h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"  5   h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"  4   h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"  3   h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"  2   h  h  h  h  h  h  h  h  h  h";
+    push @textTable,"s19   s  s  s  s  s  s  s  s  s  s";
+    push @textTable,"s18   s ds ds ds ds  s  s  h  h  h";
+    push @textTable,"s17   h dh dh dh dh  h  h  h  h  h";
+    push @textTable,"s16   h  h dh dh dh  h  h  h  h  h";
+    push @textTable,"s15   h  h dh dh dh  h  h  h  h  h";
+    push @textTable,"s14   h  h  h dh dh  h  h  h  h  h";
+    push @textTable,"s13   h  h  h dh dh  h  h  h  h  h";
 
     my @dUps = qw/2 3 4 5 6 7 8 9 t a/;
     foreach my $line (@textTable) {
