@@ -1,8 +1,0 @@
-	print "###TESTING HERE###\n";
-	@deck = ( 'ag', '5c', 'as', '7c', 'kd', '4h', 'ah', 'qs');
-	unshift @deck,"ae";
-	unshift @deck,"af";
-	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
-	print "PLACES\n";
-	$places[0]{'cards'}[0] = "aa";
-	$places[0]{'cards'}[1] = "ab";
