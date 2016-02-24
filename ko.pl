@@ -411,7 +411,7 @@ sub getAction {
 
 
 #FIXME: what if nsa==1 and aa?
-
+#FIXME: replace "sp" with "v"?
 
 
   my $action;
