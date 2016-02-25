@@ -85,7 +85,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 
         ### load a test
-	my $command = do { local $/; open(I,'test_sp_line3.txt'); <I> };
+	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
 	eval $command;
 #	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
 	print "DEALER: ";
@@ -120,13 +120,15 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 	    my $action;
 
+
 	    ## splits handling
-	    $action = getAction(\@dealer, $hand, \%table);
+	    $action = getAction(\@dealer, $hand, \%table, 'splitting');
 	    if($action eq 'sp') {
 		if(isPair($hand->{'cards'})) {
 		    if(isAce($hand->{'cards'}->[0])) {
 			if($nsa == 0) { #splitting aces allowed.
 			    if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
+				print "DEBUG: LINE3\n";
 				#line 3
 				#split, unshift new, incr splitsCnt, pat current
 				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
@@ -134,6 +136,9 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 				unshift @places,$newSpotRef;
 				push @patPlaces,$hand; # "current" is now pat.
 				undef $hand;
+
+#FIXME: what if nsa==1 and aa?
+
 #	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
 	print "DEALER: ";
 	print Dumper(\@dealer);
@@ -145,6 +150,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	print Dumper($hand);
 	print "PATPLACES: ";
 	print Dumper(\@patPlaces);
+exit(0);
 
 			    } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
 				#line 4
@@ -261,7 +267,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 #	    if(defined $hand && scalar $hand == 2) {
 #		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
 #		    if(hasAce($hand)) {
-#			$action = getAction(\@dealer, $hand, \%table);
+#			$action = getAction(\@dealer, $hand, \%table, 'doubling');
 #			if($da == 0) {
 #			    #line 3
 #			    #pat current
@@ -301,7 +307,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 #
 #	    ## hit or stand or surrender handling
 ###FIXME: su only on 2 cards?
-#	    $action = getAction(\@dealer, $hand, \%table);
+#	    $action = getAction(\@dealer, $hand, \%table, 'normal');
 #
 #
 #
@@ -407,10 +413,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 ### sub getAction
 sub getAction {
-  (my $dealerRef, my $handRef, my $tableRef) = @_;
+  (my $dealerRef, my $handRef, my $tableRef, my $tableSection) = @_;
 
-
-#FIXME: what if nsa==1 and aa?
 #FIXME: replace "sp" with "v"?
 
 
@@ -430,62 +434,56 @@ sub getAction {
       print "ERROR: busted lookup.\n";
       exit(1);
   }
-print "BLAH1 $tableRef->{$pRank . $pRank}->{$dRank}\n";
-print "BLAH2 $tableRef->{$pRank . $pRank}{$dRank}\n";
 
-  if(isPair($handRef->{'cards'})) { #split?
-    $action = $tableRef->{$pRank . $pRank}->{$dRank};
-  }
-  if(isSoft($handRef->{'cards'})) { #soft?
-    if($bestTotal >= 19) {
-      $action = 's';
-    } else {
-      $action = $tableRef->{'s' . $bestTotal}->{$dRank};
-    }
+  if($tableSection eq 'splitting' and isPair($handRef->{'cards'})) { #split?
+      $action = $tableRef->{$pRank . $pRank}->{$dRank};
+  } elsif(isSoft($handRef->{'cards'})) { #soft?
+      if($bestTotal >= 19) {
+	  $action = 's';
+      } else {
+	  $action = $tableRef->{'s' . $bestTotal}->{$dRank};
+      }
+  } elsif(!isSoft($handRef->{'cards'})) { #it must be hard
+      if($bestTotal >= 17) {
+	  $action = 's';
+      } else {
+	  if(not exists $tableRef->{$bestTotal}->{$dRank}) {
+	      $action = $tableRef->{"h" . $bestTotal}->{$dRank};
+	  } else {
+	      $action = $tableRef->{$bestTotal}->{$dRank};
+	  }
+      }
+  } elsif(not defined $action) {
+      print "ERROR: action undefined.\n";
+      exit(1);
   }
 print "BLAH5 $action\n";
-  if(!isSoft($handRef->{'cards'})) { #it must be hard
-    if($bestTotal >= 17) {
-      $action = 's';
-    } else {
-      if(not exists $tableRef->{$bestTotal}->{$dRank}) {
-	$action = $tableRef->{"h" . $bestTotal}->{$dRank};
-      } else {
-	$action = $tableRef->{$bestTotal}->{$dRank};
-      }
-    }
-  }
-  if(not defined $action) {
-    print "ERROR: action undefined.\n";
-    exit(1);
-  }
-exit(0);
   return $action;
 }
 
 
-#### sub splitHand
-#sub splitHand {
-#    (my $handRef, my $deckRef, my $discardsRef) = @_;
-#
-#    my %newSpot = %{$handRef};
-#    my $card0 = $handRef->{'cards'}->[0];
-#    my $card1 = $handRef->{'cards'}->[1];
-#
-#    my $newCard0 = deal($deckRef,$discardsRef);
-#    my $newCard1 = deal($deckRef,$discardsRef);
-#
-#    $handRef->{'cards'} = [$card0, $newCard0]; # dereferencing
-#    $newSpot{'cards'} = [$card1, $newCard1];
-#
-#    $newSpot{'bet'} = $handRef->{'bet'}; # not-dereferencing
-#    $newSpot{'pos'} = $handRef->{'pos'};
-#    $newSpot{'splitID'} = $handRef->{'splitID'} + 1;
-#
-#    return ($handRef, \%newSpot);
-#}
-#
-#
+### sub splitHand
+sub splitHand {
+    (my $handRef, my $deckRef, my $discardsRef) = @_;
+
+    my %newSpot = %{$handRef};
+    my $card0 = $handRef->{'cards'}->[0];
+    my $card1 = $handRef->{'cards'}->[1];
+
+    my $newCard0 = deal($deckRef,$discardsRef);
+    my $newCard1 = deal($deckRef,$discardsRef);
+
+    $handRef->{'cards'} = [$card0, $newCard0]; # dereferencing
+    $newSpot{'cards'} = [$card1, $newCard1];
+
+    $newSpot{'bet'} = $handRef->{'bet'}; # not-dereferencing
+    $newSpot{'pos'} = $handRef->{'pos'};
+    $newSpot{'splitID'} = $handRef->{'splitID'} + 1;
+
+    return ($handRef, \%newSpot);
+}
+
+
 #### sub hasAce
 #sub hasAce {
 #    my $handRef = shift(@_);
