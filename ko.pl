@@ -5,6 +5,9 @@ $Data::Dumper::Sortkeys = 1;
 
 my $DEBUG = 1;
 
+#FIXME: create a param object.
+#FIXME: test nsa==1 and aa.
+
 
 #my $nDecks = 8;      # size of shoe
 #my $cut = 1;         # penetration in number of decks unseen
@@ -88,7 +91,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 
         ### load a test
-	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
+#	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
+	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
 	eval $command;
 print "LOADING TEST.\n";
 print "DEALER: ";
@@ -111,13 +115,8 @@ print Dumper(\@patPlaces);
 	    my $action;
 
 
-
-
 	    ## splits handling
 	    $action = getAction(\@dealer, $hand, \%table, 'splitting');
-print "\nSPLITS CHECKING ON: ";
-print Dumper($hand);
-print "ACTION: $action\n";
 	    if($action eq 'sp') {
 		if(isPair($hand->{'cards'})) {
 		    if(isAce($hand->{'cards'}->[0])) {
@@ -172,19 +171,6 @@ print "DEBUG: LINE9\n";
 				unshift @places,$newSpotRef;
 				push @patPlaces,$hand; # "current" is now pat.
 				undef $hand;
-
-#FIXME: what if nsa==1 and aa?
-print "DEBUG: LINE9\n";
-print "NEWSPOTREF\n";
-print Dumper($newSpotRef);
-print "PLACES\n";
-print Dumper(\@places);
-print "PATPLACES\n";
-print Dumper(\@patPlaces);
-
-
-
-
 			    } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
 print "DEBUG: LINE10\n";
 				#line 10
@@ -276,12 +262,69 @@ print "DEBUG: LINE27\n";
 	    } # if action eq 'sp'
 
 
-#FIXME: re-insert doubles handling here.
 
+
+	    ## doubles handling
+	    if(defined $hand && scalar @{$hand->{'cards'}} == 2) {
+		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
+		    if(hasAce($hand)) {
+			$action = getAction(\@dealer, $hand, \%table, 'doubling');
+			if($da == 0) {
+			    #line 3
+			    #pat current
+			} elsif($da == 1 && $das == 1 && $ds == 1) {
+			    #line 4
+			    #dd, pat current
+			    my $ddCard = deal(\@deck,\@discards);
+			    push $hand->{'cards'},$ddCard;
+			    $hand->{'bet'} = 2.0 * $hand->{'bet'};
+			    $hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
+			    if(isBusted($hand->{'cards'})) {
+				push @bustedPlaces,$hand; # "current" is now busted.
+			    } else {
+				push @patPlaces,$hand; # "current" is now pat.
+			    }
+			    undef $hand;
+			} elsif($das == 1 && $ds == 0) {
+			    #line 5
+			    #ERROR
+			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+			    #line 6
+			    #dd, pat current
+			    my $ddCard = deal(\@deck,\@discards);
+			    push $hand->{'cards'},$ddCard;
+			    $hand->{'bet'} = 2.0 * $hand->{'bet'};
+			    $hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
+			    if(isBusted($hand->{'cards'})) {
+				push @bustedPlaces,$hand; # "current" is now busted.
+			    } else {
+				push @patPlaces,$hand; # "current" is now pat.
+			    }
+			    undef $hand;
+			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
+			    #line 7
+			    #goto decision
+			} else {
+			    #FAILTHROUGH
+			}
+		    } else { #~hasAce
+			if($ds == 0) {
+			    #line 11
+			    #goto decision
+			} elsif($ds == 1) {
+			    #line 12
+			    #dd, pat current
+			} else {
+			    #FAILTHROUGH
+			}
+		    }
+		}
+	    }
 
 
 
 	    ## iterate s,h,su on current hand.
+#PAUSE: iterate
 	    undef $action;
 	    if(defined $hand) {
 		$action = getAction(\@dealer, $hand, \%table, 'normal');
@@ -295,6 +338,11 @@ print "DEBUG: LINE27\n";
 		    my $newCard = deal(\@deck,\@discards);
 		    push $hand->{'cards'},$newCard;
 		    $hand->{'hist'} = $hand->{'hist'} . $newCard;
+		    if(isBusted($hand->{'cards'})) {
+			push @bustedPlaces,$hand; # "current" is now busted.
+			undef $action;
+			undef $hand;
+		    }
 		} elsif($action eq 'ds') { # treat as stand
 		    push @patPlaces,$hand;
 		    undef $hand;
@@ -322,6 +370,7 @@ print "DEBUG: LINE27\n";
 print "\nNORMAL\n";
 print "HAND\n";
 print Dumper($hand);
+print Dumper(\@places);
 print "ACTION: $action\n";
 	    }
 
@@ -335,49 +384,6 @@ exit(0);
 
 
 
-
-
-#	    ## doubles handling
-#	    if(defined $hand && scalar $hand == 2) {
-#		if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
-#		    if(hasAce($hand)) {
-#			$action = getAction(\@dealer, $hand, \%table, 'doubling');
-#			if($da == 0) {
-#			    #line 3
-#			    #pat current
-#			} elsif($da == 1 && $das == 1 && $ds == 1) {
-#			    #line 4
-#			    #dd, pat current
-##FIXME: debug this.
-#			    pushd $hand->{'cards'},deal(\@deck,\@discards);
-#			    push @patPlaces,$hand; # "current" is now pat.
-#			    undef $hand;
-#			} elsif($das == 1 && $ds == 0) {
-#			    #line 5
-#			    #ERROR
-#			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
-#			    #line 6
-#			    #dd, pat current
-#			} elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
-#			    #line 7
-#			    #goto decision
-#			} else {
-#			    #FAILTHROUGH
-#			}
-#		    } else { #~hasAce
-#			if($ds == 0) {
-#			    #line 11
-#			    #goto decision
-#			} elsif($ds == 1) {
-#			    #line 12
-#			    #dd, pat current
-#			} else {
-#			    #FAILTHROUGH
-#			}
-#		    }
-#		}
-#	    }
-#
 
 
 
@@ -489,12 +495,6 @@ sub getAction {
   my $action;
   my $pRank = getRank($handRef->{'cards'}->[0]);
   my $dRank = getRank($dealerRef->[1]);
-#  if($DEBUG) {
-#    print "PRANK: $pRank\n";
-#  }
-#  if($DEBUG) {
-#    print "DRANK: $dRank\n";
-#  }
 
   my @totalsAry = getTotals($handRef->{'cards'});
   my $bestTotal = bestTotal(\@totalsAry);
@@ -554,15 +554,15 @@ sub splitHand {
 }
 
 
-#### sub hasAce
-#sub hasAce {
-#    my $handRef = shift(@_);
-#    if(isAce($handRef->{'cards'}->[0]) or isAce($handRef->{'cards'}->[1])) {
-#	return 1;
-#    } else {
-#	return 0;
-#    }
-#}
+### sub hasAce
+sub hasAce {
+    my $handRef = shift(@_);
+    if(isAce($handRef->{'cards'}->[0]) or isAce($handRef->{'cards'}->[1])) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
 
 
 ### sub isAce
