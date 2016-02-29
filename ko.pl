@@ -326,7 +326,7 @@ print "DEBUG: LINE27\n";
 	    ## iterate s,h,su on current hand.
 #PAUSE: iterate
 	    undef $action;
-	    if(defined $hand) {
+	    while(defined $hand) {
 		$action = getAction(\@dealer, $hand, \%table, 'normal');
 		if($action eq 'sp') {
 		    print "ERROR:  splits were supposed to be handled earlier.\n";
