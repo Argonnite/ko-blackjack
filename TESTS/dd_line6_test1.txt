@@ -1,0 +1,40 @@
+my $nDecks = 1;      # size of shoe
+my $cut = 0.7;       # penetration in number of decks unseen
+my $nShoesToRun = 5; # number of shoes to simulate
+my $spreadMin;       # limits on the betting spread
+my $spreadMax;
+my $RCmin;           # running min count reached for the shoe
+my $RCmax;           # running max count reached for the shoe
+my $spotsLimit = 2;  # number of those seated
+my $esAllowed;       # early surrender
+my $lsAllowed;       # late surrender
+my $rsa = 1;         # resplit aces allowed
+my $rs = 0;          # resplit any allowed
+my $rsa3 = 1;        # resplit aces once
+my $rs3 = 1;         # resplit once more
+my $das = 0;         # doubling after splitting aces
+my $ds = 1;          # doubling after splitting
+my $da = 1;          # double down on any two cards
+my $hsa = 0;         # can hit after splitting aces
+my $nsa = 0;         # no splitting of aces
+my $nrs = 0;         # no resplitting
+my $h17 = 1;         # dealer hits soft 17
+my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
+
+@deck = ( 'qc',
+          '7c',
+          'as',
+          '6d',
+          'ac',
+          'jh',
+          '6c',
+          'qs',
+          '8s',
+          '9d',
+          '6s'
+	  );
+
+@dealer = ('th','3s');
+
+@places = ();
+push @places,{('bet' => 1, 'cards' => ['as','7d'], 'pos' => 0, 'splitID' => 0, 'IRC' => 0, 'hist' => 'th3s/as7d')};
