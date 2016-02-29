@@ -37,5 +37,5 @@ my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
 @dealer = ('th','3s');
 
 @places = ();
-push @places,{('bet' => 1, 'cards' => ['ac','ad'], 'pos' => 0, 'splitID' => 0, 'IRC' => 0)};
-push @places,{('bet' => 1, 'cards' => ['7s','8c'], 'pos' => 1, 'splitID' => 0, 'IRC' => 0)};
+push @places,{('bet' => 1, 'cards' => ['ac','ad'], 'pos' => 0, 'splitID' => 0, 'IRC' => 0, 'hist' => 'th3s/acad')};
+push @places,{('bet' => 1, 'cards' => ['7s','8c'], 'pos' => 1, 'splitID' => 0, 'IRC' => 0, 'hist' => 'th3s/7s8c')};

@@ -1,6 +1,7 @@
 use List::Util qw/shuffle sum/;
 use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
+$Data::Dumper::Sortkeys = 1;
 
 my $DEBUG = 1;
 
@@ -73,7 +74,10 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	my $bet = 1;
 	my @splitsCnt;
 	for(my $i = 0; $i < $spotsLimit; ++$i) {
-	    push @places,{('bet' => $bet, 'cards' => [deal(\@deck,\@discards), deal(\@deck,\@discards)], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand)};
+	    @cards = ();
+	    push @cards,deal(\@deck,\@discards);
+	    push @cards,deal(\@deck,\@discards);
+	    push @places,{('bet' => $bet, 'cards' => [$cards[0],$cards[1]], 'pos' => $i, 'splitID' => 0, 'IRC' => $runningCountAtStartOfHand), 'hist' => join('',@dealer) . '/' . join('',@cards)};
 	    $splitsCnt[$i] = 0;
 	}
 
@@ -91,7 +95,7 @@ print "DEALER: ";
 print Dumper(\@dealer);
 print "DECK: ";
 print Dumper(\@deck);
-print "PLACES: ";
+print "STARTING PLACES: ";
 print Dumper(\@places);
 print "CURRENT: ";
 print Dumper($hand);
@@ -105,6 +109,8 @@ print Dumper(\@patPlaces);
 	while (scalar @places) {
 	    my $hand = shift @places;
 	    my $action;
+
+
 
 
 	    ## splits handling
@@ -163,8 +169,6 @@ print "DEBUG: LINE9\n";
 				#split, unshift new, incr splitsCnt, pat current
 				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
 				++$splitsCnt[$hand->{'pos'}];
-				$hand->{'hist'} = join('',@dealer) . ',' . $hand->{'hist'};
-				$newSpotRef->{'hist'} = join('',@dealer) . ',' . $newSpotRef->{'hist'};
 				unshift @places,$newSpotRef;
 				push @patPlaces,$hand; # "current" is now pat.
 				undef $hand;
@@ -274,6 +278,9 @@ print "DEBUG: LINE27\n";
 
 #FIXME: re-insert doubles handling here.
 
+
+
+
 	    ## iterate s,h,su on current hand.
 	    undef $action;
 	    if(defined $hand) {
@@ -300,7 +307,7 @@ print "DEBUG: LINE27\n";
 		    $hand->{'hist'} = $hand->{'hist'} . $newCard;
 		} elsif($action eq 'su') {
 		    if($esAllowed == 1 || $lsAllowed == 1) {
-#FIXME: flesh this out.
+#FIXME: flesh out surrenders.
 #FIXME: su only on 2 cards?
 		    } else {
 			my $newCard = deal(\@deck,\@discards);
@@ -320,6 +327,8 @@ print "ACTION: $action\n";
 
 
 	} # foreach @places
+print "\nFINAL PATPLACES\n";
+print Dumper(\@patPlaces);
 exit(0);
     }
 
@@ -534,8 +543,8 @@ sub splitHand {
     $handRef->{'cards'} = [$card0, $newCard0]; # dereferencing
     $newSpot{'cards'} = [$card1, $newCard1];
 
-    $handRef->{'hist'} = $card0 . $card1 . 'sp' . $card0 . $newCard0;
-    $newSpot{'hist'} = $card0 . $card1 . 'sp' . $card1 . $newCard1;
+    $handRef->{'hist'} = $handRef->{'hist'} . 'sp' . $card0 . $newCard0;
+    $newSpot{'hist'} = $newSpot{'hist'} . 'sp' . $card1 . $newCard1;
 
     $newSpot{'bet'} = $handRef->{'bet'}; # not-dereferencing
     $newSpot{'pos'} = $handRef->{'pos'};
