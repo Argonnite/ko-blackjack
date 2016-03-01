@@ -1,0 +1,80 @@
+#my $nDecks = 8;      # size of shoe
+#my $cut = 1;         # penetration in number of decks unseen
+my $nDecks = 1;      # size of shoe
+my $cut = 0.4;       # penetration in number of decks unseen
+my $nShoesToRun = 1; # number of shoes to simulate
+my $spreadMin;       # limits on the betting spread
+my $spreadMax;
+my $RCmin;           # running min count reached for the shoe
+my $RCmax;           # running max count reached for the shoe
+my $spotsLimit = 2;  # number of those seated
+my $esAllowed = 0;   # early surrender
+my $lsAllowed = 0;   # late surrender
+my $rsa = 1;         # resplit aces allowed
+my $rs = 0;          # resplit any allowed
+my $rsa3 = 1;        # resplit aces once
+my $rs3 = 1;         # resplit once more
+my $das = 0;         # doubling after splitting aces
+my $ds = 1;          # doubling after splitting
+my $da = 1;          # double down on any two cards
+my $hsa = 0;         # can hit after splitting aces
+my $nsa = 0;         # no splitting of aces
+my $nrs = 0;         # no resplitting
+my $h17 = 1;         # dealer hits soft 17
+my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
+
+@deck = (
+          '3h',
+          '6s',
+          '9h',
+          '5c',
+          'ks',
+          '7s',
+          '2h',
+          'kh',
+          'tc',
+          '9c',
+          'ad',
+          'qc',
+          'kd',
+          'th',
+          'kc',
+          'ah',
+          '9s',
+          '7c',
+          'qh',
+          '3c',
+          '9d',
+          'ac',
+          '4c',
+          '6h',
+          '2d',
+          'js',
+          'as',
+          '4h',
+          '7d',
+          'td',
+          '8h',
+          'jc',
+          '7h',
+          'ts',
+          '3s',
+          '3d',
+          '2s',
+          '4d',
+          '2c',
+          '5s',
+          '6c',
+          '8c',
+          'jd',
+          '8d',
+          'jh',
+          '8s',
+          'qd',
+          'qs',
+          '5d',
+          '4s',
+          '6d',
+          '5h'
+	  );
+
