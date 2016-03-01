@@ -12,8 +12,8 @@ my $DEBUG = 1;
 #my $nDecks = 8;      # size of shoe
 #my $cut = 1;         # penetration in number of decks unseen
 my $nDecks = 1;      # size of shoe
-my $cut = 0.7;       # penetration in number of decks unseen
-my $nShoesToRun = 5; # number of shoes to simulate
+my $cut = 0.4;       # penetration in number of decks unseen
+my $nShoesToRun = 1; # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
 my $spreadMax;
 my $RCmin;           # running min count reached for the shoe
@@ -58,18 +58,29 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my $runningCount = 0;
 
 
+        ### load a test
+#	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
+#	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
+    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I> };
+    eval $command;
+
+    my $nRound = 0;
     while(scalar @deck > $fPenetrationCard) { #deal a round
+print "DEALING ROUND: $nRound\n";
+++$nRound;
 
 	### initial running count (IRC) before dealing round
 	my $runningCountAtStartOfHand = $runningCount;
 	print "IRC: $runningCountAtStartOfHand\n";
 
+print "DECK: ";
+print Dumper(\@deck);
 
         ### dealer's cards
 	my @dealer;
 	push @dealer,deal(\@deck,\@discards);
 	push @dealer,deal(\@deck,\@discards);
-
+print "DEALER START: " . join('',@dealer) . "\n";
 
         ### players' cards
 	my @places;
@@ -90,21 +101,15 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	my @bustedPlaces;
 
 
-        ### load a test
-#	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
-	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
-	eval $command;
-print "LOADING TEST.\n";
-print "DEALER: ";
-print Dumper(\@dealer);
-print "DECK: ";
-print Dumper(\@deck);
-print "STARTING PLACES: ";
-print Dumper(\@places);
-print "CURRENT: ";
-print Dumper($hand);
-print "PATPLACES: ";
-print Dumper(\@patPlaces);
+#print "LOADING TEST.\n";
+#print "DEALER: ";
+#print Dumper(\@dealer);
+#print "STARTING PLACES: ";
+#print Dumper(\@places);
+#print "CURRENT: ";
+#print Dumper($hand);
+#print "PATPLACES: ";
+#print Dumper(\@patPlaces);
 
 
 
@@ -324,7 +329,6 @@ print "DEBUG: LINE27\n";
 
 
 	    ## iterate s,h,su on current hand.
-#PAUSE: iterate
 	    undef $action;
 	    while(defined $hand) {
 		$action = getAction(\@dealer, $hand, \%table, 'normal');
@@ -358,27 +362,53 @@ print "DEBUG: LINE27\n";
 #FIXME: flesh out surrenders.
 #FIXME: su only on 2 cards?
 		    } else {
+			# treat as hit
 			my $newCard = deal(\@deck,\@discards);
 			push $hand->{'cards'},$newCard;
 			$hand->{'hist'} = $hand->{'hist'} . $newCard;
+			if(isBusted($hand->{'cards'})) {
+			    push @bustedPlaces,$hand; # "current" is now busted.
+			    undef $action;
+			    undef $hand;
+			}
 		    }
 		} else {
 		    #FAILTHROUGH
 		}
 
 
-print "\nNORMAL\n";
-print "HAND\n";
-print Dumper($hand);
-print Dumper(\@places);
-print "ACTION: $action\n";
+#print "\nNORMAL\n";
+#print "HAND\n";
+#print Dumper($hand);
+#print Dumper(\@places);
+#print "ACTION: $action\n";
 	    }
 
 
 	} # foreach @places
 print "\nFINAL PATPLACES\n";
 print Dumper(\@patPlaces);
-exit(0);
+print "\nFINAL BUSTEDPLACES\n";
+print Dumper(\@bustedPlaces);
+
+
+
+
+### dealer actions
+    my @dealerTotalsAry = getTotals(\@dealer);
+    my $dealerBest = bestTotal(\@dealerTotalsAry);
+
+
+    while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
+	my $dealerCard = deal(\@deck,\@discards);
+	push @dealer,$dealerCard;
+	@dealerTotalsAry = getTotals(\@dealer);
+	$dealerBest = bestTotal(\@dealerTotalsAry);
+    }
+print "FINAL DEALER: " . join(' ',@dealer) . "\n";
+
+
+
     }
 
 
@@ -388,29 +418,6 @@ exit(0);
 
 
 
-
-#        ### dealer actions
-#	my @dealerTotalsAry = getTotals(\@dealer);
-#	my $dealerBest = bestTotal(\@dealerTotalsAry);
-#	print "Dealer: " . join(' ',@dealer) . "\n";
-#	print "DealerTots: " . Dumper(\@dealerTotalsAry);
-#	print "DealerBest: $dealerBest\n";
-#
-#
-#	while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
-#	    print "---DEALER PAUSE---\n";
-#	    my $key = <>;
-#	    my $dealerCard = deal(\@deck,\@discards);
-#	    push @dealer,$dealerCard;
-#	    @dealerTotalsAry = getTotals(\@dealer);
-#	    $dealerBest = bestTotal(\@dealerTotalsAry);
-#	    print "DEALER HITTING.\n";
-#	    print "DEALER: " . join(' ',@dealer) . "\n";
-#	    print "DEALERTOTS: " . Dumper(\@dealerTotalsAry);
-#	    print "DEALERBEST: $dealerBest\n";
-#	}
-#
-#
 #        ### collections, payouts, and discards
 #	print "BLAHBLAHBLAH\n";
 #	print "Dealer: " . join(' ',("XX"),@dealer[1]) . "\n";
@@ -603,18 +610,29 @@ sub deal {
 }
 
 
-#### sub KOVal
-#sub KOVal {
-#    my $card = shift(@_);
-#    my $rank = substr($card,0,1);
-#    if($rank =~ /[akqjt]/) {
-#	return -1;
-#    } elsif ($rank > 1 and $rank < 8) {
-#	return 1;
-#    } else {
-#	return 0;
-#    }
-#}
+### sub KOValCard
+sub KOValCard {
+    my $rank = getRank(shift @_);
+    if($rank eq 't') {
+	return -1;
+    } elsif ($rank > 1 and $rank < 8) {
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+
+### sub KOValAry
+sub KOValAry {
+    my $cardAryRef = shift(@_);
+
+    my $runningTotal = 0;
+    foreach my $card (@{$cardAryRef}) {
+	$runningTotal += KOValCard($card);
+    }
+    return $runningTotal;
+}
 
 
 ### sub generate
