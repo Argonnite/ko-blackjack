@@ -66,7 +66,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my $nRound = 0;
     while(scalar @deck > $fPenetrationCard) { #deal a round
 
-print "\nNEW DEAL\n";	
+      print "\nNEW DEAL\n";	
 
         ### dealer's cards
 	my @dealer;
@@ -79,11 +79,17 @@ print "\nNEW DEAL\n";
 	my @cards;
 	my $bet = 1;
 	my @splitsCnt;
+        my $bettingRC = 4 * $nDecks - KOValAry(\@deck);
+      my $surrenderRC;
+      if(getRank($dealer[0] eq 'a')) {
+	$surrenderRC = $bettingRC - 1;
+      }
+
 	for(my $i = 0; $i < $spotsLimit; ++$i) {
 	    @cards = ();
 	    push @cards,deal(\@deck,\@discards);
 	    push @cards,deal(\@deck,\@discards);
-	    push @places,{'bet' => $bet, 'cards' => [$cards[0],$cards[1]], 'pos' => $i, 'splitID' => 0, 'hist' => join('',@dealer) . '/' . join('',@cards), 'round' => $nRound, 'shoe' => $nCurrentShoe};
+	    push @places,{'bet' => $bet, 'cards' => [$cards[0],$cards[1]], 'pos' => $i, 'splitID' => 0, 'hist' => join('',@dealer) . '/' . join('',@cards), 'round' => $nRound, 'shoe' => $nCurrentShoe, 'bettingRC' => $bettingRC, 'surrenderRC' => $surrenderRC};
 	    $splitsCnt[$i] = 0;
 	}
 
@@ -99,11 +105,14 @@ print "\nNEW DEAL\n";
 	if(isNatural(\@dealer)) { #process dealer bj.
 	    @patPlaces = @places;
 	    @places = ();
+#FIXME: accurateRC here?
 	} else {#handle player actions normally.
 	    while (scalar @places) {
 		my $hand = shift @places;
 		my $action;
 
+		my $accurateRC = 4 * $nDecks - KOValAry(\@deck);
+		$hand->{'accurateRC'} = $accurateRC;
 
 		## splits handling
 		$action = getAction(\@dealer, $hand, \%table, 'splitting');
@@ -452,7 +461,7 @@ sub getAction {
 
   my $action;
   my $pRank = getRank($handRef->{'cards'}->[0]);
-  my $dRank = getRank($dealerRef->[1]);
+  my $dRank = getRank($dealerRef->[0]);
 
   my @totalsAry = getTotals($handRef->{'cards'});
   my $bestTotal = bestTotal(\@totalsAry);
@@ -516,6 +525,7 @@ sub splitHand {
 sub hasAce {
     my $handRef = shift(@_);
     if(isAce($handRef->{'cards'}->[0]) or isAce($handRef->{'cards'}->[1])) {
+#FIXME: what if more than 2 cards?
 	return 1;
     } else {
 	return 0;
