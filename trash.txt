@@ -1,0 +1,223 @@
+DECK:
+$VAR1 = [
+          '5h',
+          '7h',
+          'as',
+          '3h',
+          '2s',
+          'jd',
+          '2h',
+          'qh',
+          'js',
+          'qc',
+          '9d',
+          '3d',
+          '7d',
+          '8d',
+          '4h',
+          '9s',
+          '9c',
+
+          '5s',
+          '7s',
+          '2d',
+          '4s',
+          '6d',
+          'qd',
+          'kh',
+          '3c',
+          'qs',
+          '8s',
+          'ks',
+          'jc',
+          'ac',
+          '5d',
+          'jh',
+          'tc',
+          'th',
+          '2c',
+          '7c',
+          '8h',
+          '5c',
+          '9h',
+          '3s',
+          '6s',
+          'ad',
+          'kc',
+          'ts',
+          '4c',
+          '6c',
+          'kd',
+          '4d',
+          '6h',
+          'td',
+          'ah',
+          '8c'
+        ];
+
+NEW DEAL
+FINAL PATPLACES
+$VAR1 = [
+          {
+            'accurateRC' => 2,
+            'bet' => 2,
+            'bettingRC' => 0,
+            'cards' => [
+                         'as',
+                         '3h',
+                         '2h'
+                       ],
+            'hist' => '5h7h/as3hdd2h',
+            'pos' => 0,
+            'round' => 0,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          },
+          {
+            'accurateRC' => 3,
+            'bet' => 1,
+            'bettingRC' => 0,
+            'cards' => [
+                         '2s',
+                         'jd'
+                       ],
+            'hist' => '5h7h/2sjd',
+            'pos' => 1,
+            'round' => 0,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          }
+        ];
+FINAL BUSTEDPLACES
+$VAR1 = [];
+FINAL DEALER: 5h 7h qh
+INCOUNT: 2
+OUTCOUNT: 2
+
+NEW DEAL
+FINAL PATPLACES
+$VAR1 = [];
+FINAL BUSTEDPLACES
+$VAR1 = [
+          {
+            'accurateRC' => 2,
+            'bet' => 1,
+            'bettingRC' => 2,
+            'cards' => [
+                         '9d',
+                         '3d',
+                         '4h',
+                         '9s'
+                       ],
+            'hist' => 'jsqc/9d3d4h9s',
+            'pos' => 0,
+            'round' => 1,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          },
+          {
+            'accurateRC' => 3,
+            'bet' => 1,
+            'bettingRC' => 2,
+            'cards' => [
+                         '7d',
+                         '8d',
+                         '9c'
+                       ],
+            'hist' => 'jsqc/7d8d9c',
+            'pos' => 1,
+            'round' => 1,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          }
+        ];
+FINAL DEALER: js qc
+INCOUNT: 1
+OUTCOUNT: 3
+
+NEW DEAL
+FINAL PATPLACES
+$VAR1 = [
+          {
+            'accurateRC' => 7,
+            'bet' => 1,
+            'bettingRC' => 3,
+            'cards' => [
+                         '2d',
+                         '4s',
+                         'kh'
+                       ],
+            'hist' => '5s7s/2d4skh',
+            'pos' => 0,
+            'round' => 2,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          },
+          {
+            'accurateRC' => 6,
+            'bet' => 1,
+            'bettingRC' => 3,
+            'cards' => [
+                         '6d',
+                         'qd'
+                       ],
+            'hist' => '5s7s/6dqd',
+            'pos' => 1,
+            'round' => 2,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          }
+        ];
+FINAL BUSTEDPLACES
+$VAR1 = [];
+FINAL DEALER: 5s 7s 3c qs
+INCOUNT: -2
+OUTCOUNT: 6
+
+NEW DEAL
+FINAL PATPLACES
+$VAR1 = [
+          {
+            'accurateRC' => 3,
+            'bet' => 1,
+            'bettingRC' => 6,
+            'cards' => [
+                         'jc',
+                         'ac'
+                       ],
+            'hist' => '8sks/jcac',
+            'pos' => 0,
+            'round' => 3,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          }
+        ];
+FINAL BUSTEDPLACES
+$VAR1 = [
+          {
+            'accurateRC' => 3,
+            'bet' => 1,
+            'bettingRC' => 6,
+            'cards' => [
+                         '5d',
+                         'jh',
+                         'tc'
+                       ],
+            'hist' => '8sks/5djhtc',
+            'pos' => 1,
+            'round' => 3,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          }
+        ];
+FINAL DEALER: 8s ks
+INCOUNT: 2
+OUTCOUNT: 2
