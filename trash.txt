@@ -17,7 +17,6 @@ $VAR1 = [
           '4h',
           '9s',
           '9c',
-
           '5s',
           '7s',
           '2d',
@@ -55,7 +54,7 @@ $VAR1 = [
           '8c'
         ];
 
-NEW DEAL
+NEW DEAL 0
 FINAL PATPLACES
 $VAR1 = [
           {
@@ -95,8 +94,9 @@ $VAR1 = [];
 FINAL DEALER: 5h 7h qh
 INCOUNT: 2
 OUTCOUNT: 2
+STUBSIZE: 44 (0.846153846153846)
 
-NEW DEAL
+NEW DEAL 1
 FINAL PATPLACES
 $VAR1 = [];
 FINAL BUSTEDPLACES
@@ -138,8 +138,9 @@ $VAR1 = [
 FINAL DEALER: js qc
 INCOUNT: 1
 OUTCOUNT: 3
+STUBSIZE: 35 (0.673076923076923)
 
-NEW DEAL
+NEW DEAL 2
 FINAL PATPLACES
 $VAR1 = [
           {
@@ -179,8 +180,9 @@ $VAR1 = [];
 FINAL DEALER: 5s 7s 3c qs
 INCOUNT: -2
 OUTCOUNT: 6
+STUBSIZE: 26 (0.5)
 
-NEW DEAL
+NEW DEAL 3
 FINAL PATPLACES
 $VAR1 = [
           {
@@ -221,3 +223,4 @@ $VAR1 = [
 FINAL DEALER: 8s ks
 INCOUNT: 2
 OUTCOUNT: 2
+STUBSIZE: 19 (0.365384615384615)

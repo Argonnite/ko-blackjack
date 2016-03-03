@@ -16,8 +16,6 @@ my $cut = 0.4;       # penetration in number of decks unseen
 my $nShoesToRun = 1; # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
 my $spreadMax;
-my $RCmin;           # running min count reached for the shoe
-my $RCmax;           # running max count reached for the shoe
 my $spotsLimit = 2;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
@@ -57,21 +55,30 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my @discards = ();
 
 
+    if($DEBUG) {
     ### load a test
-#	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
-#	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
-    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I> };
-    eval $command;
+##	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
+##	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
+#    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I> };
+#    eval $command;
+    }
 
 
-    print "DECK:\n";
-    print Dumper(\@deck);
+    if($DEBUG) {
+	print "DECK:\n";
+	print Dumper(\@deck);
+    }
 
 
     my $nRound = 0;
     while(scalar @deck > $fPenetrationCard) { #deal a round
 
-      print "\nNEW DEAL\n";	
+	if($DEBUG) {
+	    print "\nNEW DEAL $nRound\n";	
+	}
+
+	my $bettingRC = 4 * $nDecks - KOValAry(\@deck);
+
 
         ### dealer's cards
 	my @dealer;
@@ -84,11 +91,10 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 	my @cards;
 	my $bet = 1;
 	my @splitsCnt;
-        my $bettingRC = 4 * $nDecks - KOValAry(\@deck);
-      my $surrenderRC;
-      if(getRank($dealer[0] eq 'a')) {
-	$surrenderRC = $bettingRC - 1;
-      }
+	my $surrenderRC;
+	if(getRank($dealer[0] eq 'a')) {
+	    $surrenderRC = $bettingRC - 1;
+	}
 
 	for(my $i = 0; $i < $spotsLimit; ++$i) {
 	    @cards = ();
@@ -118,6 +124,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 		my $accurateRC = 4 * $nDecks - KOValAry(\@deck);
 		$hand->{'accurateRC'} = $accurateRC;
+
 
 		## splits handling
 		$action = getAction(\@dealer, $hand, \%table, 'splitting');
@@ -381,16 +388,19 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 		$dealerBest = bestTotal(\@dealerTotalsAry);
 	    }
 	}
-print "FINAL PATPLACES\n";
-print Dumper(\@patPlaces);
-print "FINAL BUSTEDPLACES\n";
-print Dumper(\@bustedPlaces);
-print "FINAL DEALER: " . join(' ',@dealer) . "\n";
 	my $fullCount = 4 * $nDecks;
 	my $inCount = KOValAry(\@deck);
-print "INCOUNT: $inCount\n";
 	my $outCount = $fullCount - $inCount;
-print "OUTCOUNT: $outCount\n";
+	if($DEBUG) {
+	    print "FINAL PATPLACES\n";
+	    print Dumper(\@patPlaces);
+	    print "FINAL BUSTEDPLACES\n";
+	    print Dumper(\@bustedPlaces);
+	    print "FINAL DEALER: " . join(' ',@dealer) . "\n";
+	    print "INCOUNT: $inCount\n";
+	    print "OUTCOUNT: $outCount\n";
+	    print "STUBSIZE: " . scalar @deck . " (" . (scalar @deck)/(52.0*$nDecks) . ")\n";
+	}
 	++$nRound;
     }
 
