@@ -63,6 +63,11 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I> };
     eval $command;
 
+
+    print "DECK:\n";
+    print Dumper(\@deck);
+
+
     my $nRound = 0;
     while(scalar @deck > $fPenetrationCard) { #deal a round
 
@@ -336,6 +341,11 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 			my $newCard = deal(\@deck,\@discards);
 			push $hand->{'cards'},$newCard;
 			$hand->{'hist'} = $hand->{'hist'} . $newCard;
+			if(isBusted($hand->{'cards'})) {
+			    push @bustedPlaces,$hand; # "current" is now busted.
+			    undef $action;
+			    undef $hand;
+			}
 		    } elsif($action eq 'su') {
 			if($esAllowed == 1 || $lsAllowed == 1) {
 #FIXME: flesh out surrenders.
@@ -467,6 +477,8 @@ sub getAction {
   my $bestTotal = bestTotal(\@totalsAry);
   if($bestTotal == -1) {
       print "ERROR: busted lookup.\n";
+      print "SECTION: $tableSection\n";
+      print Dumper($handRef);
       exit(1);
   }
 
