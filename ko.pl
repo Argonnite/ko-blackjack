@@ -45,11 +45,11 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my @ranks = qw/a k q j t 9 8 7 6 5 4 3 2/;
     my @suits = qw/s h d c/;
     for(my $i = 0; $i < $nDecks; ++$i) {
-	foreach my $suit (@suits) {
-	    foreach my $rank (@ranks) {
-		push @deck,$rank . $suit;
-	    }
-	}
+        foreach my $suit (@suits) {
+            foreach my $rank (@ranks) {
+                push @deck,$rank . $suit;
+            }
+        }
     }
     @deck = shuffle @deck;
     my @discards = ();
@@ -65,351 +65,345 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 
     if($DEBUG) {
-	print "DECK:\n";
-	print Dumper(\@deck);
+        print "DECK:\n";
+        print Dumper(\@deck);
     }
 
 
     my $nRound = 0;
     while(scalar @deck > $fPenetrationCard) { #deal a round
 
-	if($DEBUG) {
-	    print "\nNEW DEAL $nRound\n";	
-	}
+        if($DEBUG) {
+            print "\nNEW DEAL $nRound\n";	
+        }
 
-	my $bettingRC = 4 * $nDecks - KOValAry(\@deck);
+        my $preDealRC = 4 * $nDecks - KOValAry(\@deck);
 
 
         ### dealer's cards
-	my @dealer;
-	push @dealer,deal(\@deck,\@discards);
-	push @dealer,deal(\@deck,\@discards);
+        my @dealer;
+        push @dealer,deal(\@deck,\@discards);
+        push @dealer,deal(\@deck,\@discards);
 
 
         ### players' cards
-	my @places;
-	my @cards;
-	my $bet = 1;
-	my @splitsCnt;
-	my $surrenderRC;
-	if(getRank($dealer[0] eq 'a')) {
-	    $surrenderRC = $bettingRC - 1;
-	}
+        my @places;
+        my @cards;
+        my $bet = 1;
+        my @splitsCnt;
+        my $surrenderRC;
+        if(getRank($dealer[0] eq 'a')) {
+            $surrenderRC = $preDealRC - 1;
+        }
 
-	for(my $i = 0; $i < $spotsLimit; ++$i) {
-	    @cards = ();
-	    push @cards,deal(\@deck,\@discards);
-	    push @cards,deal(\@deck,\@discards);
-	    push @places,{'bet' => $bet, 'cards' => [$cards[0],$cards[1]], 'pos' => $i, 'splitID' => 0, 'hist' => join('',@dealer) . '/' . join('',@cards), 'round' => $nRound, 'shoe' => $nCurrentShoe, 'bettingRC' => $bettingRC, 'surrenderRC' => $surrenderRC};
-	    $splitsCnt[$i] = 0;
-	}
+        for(my $i = 0; $i < $spotsLimit; ++$i) {
+            @cards = ();
+            push @cards,deal(\@deck,\@discards);
+            push @cards,deal(\@deck,\@discards);
+            push @places,{'bet' => $bet, 'cards' => [$cards[0],$cards[1]], 'pos' => $i, 'splitID' => 0, 'hist' => join('',@dealer) . '/' . join('',@cards), 'round' => $nRound, 'shoe' => $nCurrentShoe, 'preDealRC' => $preDealRC, 'surrenderRC' => $surrenderRC};
+            $splitsCnt[$i] = 0;
+        }
 
 
         ### players' hits
-	my @patPlaces;
-	my @bustedPlaces;
+        my @patPlaces;
+        my @bustedPlaces;
 
 
 #FIXME: ask for insurance here if ace shows.
 
 
-	if(isNatural(\@dealer)) { #process dealer bj.
-	    @patPlaces = @places;
-	    @places = ();
-#FIXME: accurateRC here?
-	} else {#handle player actions normally.
-	    while (scalar @places) {
-		my $hand = shift @places;
-		my $action;
+        if(isNatural(\@dealer)) { #process dealer bj.
+            @patPlaces = @places;
+            @places = ();
+#FIXME: preActionRC here?
+        } else {#handle player actions normally.
+            while (scalar @places) {
+                my $hand = shift @places;
+                my $action;
 
-		my $accurateRC = 4 * $nDecks - KOValAry(\@deck);
-		$hand->{'accurateRC'} = $accurateRC;
-
-
-		## splits handling
-		$action = getAction(\@dealer, $hand, \%table, 'splitting');
-		if($action eq 'sp') {
-		    if(isPair($hand->{'cards'})) {
-			if(isAce($hand->{'cards'}->[0])) {
-			    if($nsa == 0) { #splitting aces allowed.
-				if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
-				    #line 3
-				    #split, unshift new, incr splitsCnt, pat current
-				    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				    ++$splitsCnt[$hand->{'pos'}];
-				    unshift @places,$newSpotRef;
-				    push @patPlaces,$hand; # "current" is now pat.
-				    undef $hand;
-				} elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
-				    #line 4
-				    #pat current
-				    push @patPlaces,$hand;
-				    undef $hand;
-				} elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] >= 2) {
-				    #line 5
-				    #ERROR
-				} elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
-				    #line 6
-				    #split, unshift new, incr splitsCnt, goto decision
-				    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				    ++$splitsCnt[$hand->{'pos'}];
-				    unshift @places,$newSpotRef;
-				} elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
-				    #line 7
-				    #goto decision
-				} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 0) {
-				    #line 8
-				    #split, unshift new, pat current
-				    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				    ++$splitsCnt[$hand->{'pos'}];
-				    unshift @places,$newSpotRef;
-				    push @patPlaces,$hand; # "current" is now pat.
-				    undef $hand;
-				} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
-				    #line 9
-				    #split, unshift new, incr splitsCnt, pat current
-				    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				    ++$splitsCnt[$hand->{'pos'}];
-				    unshift @places,$newSpotRef;
-				    push @patPlaces,$hand; # "current" is now pat.
-				    undef $hand;
-				} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-				    #line 10
-				    #pat current
-				    push @patPlaces,$hand; # "current" is now pat.
-				    undef $hand;
-				} elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
-				    #line 11
-				    #ERROR
-				} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 0) {
-				    #line 12
-				    #split, unshift new, goto decision
-				    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				    ++$splitsCnt[$hand->{'pos'}];
-				    unshift @places,$newSpotRef;
-				} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
-				    #line 13
-				    #split, unshift new, incr splitsCnt, goto decision
-				    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				    ++$splitsCnt[$hand->{'pos'}];
-				    unshift @places,$newSpotRef;
-				} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-				    #line 14
-				    #goto decision
-				} elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
-				    #line 15
-				    #ERROR
-				} else {
-				    #FAILTHROUGH
-				}
-			    } #else gotoDecision
-			} else { #~isA & isPair
-			    if($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
-				#line 19
-				#split, unshift new, incr splitsCnt, goto decision
-				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				++$splitsCnt[$hand->{'pos'}];
-				unshift @places,$newSpotRef;
-			    } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
-				#line 20
-				#goto decision
-			    } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-				#line 21
-				#ERROR
-			    } elsif($nrs == 0 && $rs3 == 0) {
-				#line 22
-				#split, unshift new, goto decision
-				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				++$splitsCnt[$hand->{'pos'}];
-				unshift @places,$newSpotRef;
-			    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
-				#line 23
-				#split, unshift new, incr splitsCnt, goto decision
-				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				++$splitsCnt[$hand->{'pos'}];
-				unshift @places,$newSpotRef;
-			    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
-				#line 24
-				#split, unshift new, incr splitsCnt, goto decision
-				($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
-				++$splitsCnt[$hand->{'pos'}];
-				unshift @places,$newSpotRef;
-			    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
-				#line 25
-				#goto decision
-			    } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
-				#line 26
-				#ERROR
-			    } else {
-				#FAILTHROUGH
-			    }
-			}
-		    }
-		} # if action eq 'sp'
+                my $preActionRC = 4 * $nDecks - KOValAry(\@deck);
+                $hand->{'preActionRC'} = $preActionRC;
 
 
-
-
-		## doubles handling
-		if(defined $hand && scalar @{$hand->{'cards'}} == 2) {
-		    if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
-			if(hasAce($hand)) {
-			    $action = getAction(\@dealer, $hand, \%table, 'doubling');
-			    if($da == 0) {
-				#line 3
-				#pat current
-			    } elsif($da == 1 && $das == 1 && $ds == 1) {
-				#line 4
-				#dd, pat current
-				my $ddCard = deal(\@deck,\@discards);
-				push $hand->{'cards'},$ddCard;
-				$hand->{'bet'} = 2.0 * $hand->{'bet'};
-				$hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
-				if(isBusted($hand->{'cards'})) {
-				    push @bustedPlaces,$hand; # "current" is now busted.
-				} else {
-				    push @patPlaces,$hand; # "current" is now pat.
-				}
-				undef $hand;
-			    } elsif($das == 1 && $ds == 0) {
-				#line 5
-				#ERROR
-			    } elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
-				#line 6
-				#dd, pat current
-				my $ddCard = deal(\@deck,\@discards);
-				push $hand->{'cards'},$ddCard;
-				$hand->{'bet'} = 2.0 * $hand->{'bet'};
-				$hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
-				if(isBusted($hand->{'cards'})) {
-				    push @bustedPlaces,$hand; # "current" is now busted.
-				} else {
-				    push @patPlaces,$hand; # "current" is now pat.
-				}
-				undef $hand;
-			    } elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
-				#line 7
-				#goto decision
-			    } else {
-				#FAILTHROUGH
-			    }
-			} else { #~hasAce
-			    if($ds == 0) {
-				#line 11
-				#goto decision
-			    } elsif($ds == 1) {
-				#line 12
-				#dd, pat current
-				my $ddCard = deal(\@deck,\@discards);
-				push $hand->{'cards'},$ddCard;
-				$hand->{'bet'} = 2.0 * $hand->{'bet'};
-				$hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
-				if(isBusted($hand->{'cards'})) {
-				    push @bustedPlaces,$hand; # "current" is now busted.
-				} else {
-				    push @patPlaces,$hand; # "current" is now pat.
-				}
-				undef $hand;
-			    } else {
-				#FAILTHROUGH
-			    }
-			}
-		    }
-		}
+                ## splits handling
+                $action = getAction(\@dealer, $hand, \%table, 'splitting');
+                if($action eq 'sp') {
+                    if(isPair($hand->{'cards'})) {
+                        if(isAce($hand->{'cards'}->[0])) {
+                            if($nsa == 0) { #splitting aces allowed.
+                                if($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
+                                    #line 3
+                                    #split, unshift new, incr splitsCnt, pat current
+                                    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                    ++$splitsCnt[$hand->{'pos'}];
+                                    unshift @places,$newSpotRef;
+                                    push @patPlaces,$hand; # "current" is now pat.
+                                    undef $hand;
+                                } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
+                                    #line 4
+                                    #pat current
+                                    push @patPlaces,$hand;
+                                    undef $hand;
+                                } elsif($hsa == 0 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] >= 2) {
+                                    #line 5
+                                    #ERROR
+                                } elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 0) {
+                                    #line 6
+                                    #split, unshift new, incr splitsCnt, goto decision
+                                    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                    ++$splitsCnt[$hand->{'pos'}];
+                                    unshift @places,$newSpotRef;
+                                } elsif($hsa == 1 && $rsa == 0 && $splitsCnt[$hand->{'pos'}] == 1) {
+                                    #line 7
+                                    #goto decision
+                                } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 0) {
+                                    #line 8
+                                    #split, unshift new, pat current
+                                    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                    ++$splitsCnt[$hand->{'pos'}];
+                                    unshift @places,$newSpotRef;
+                                    push @patPlaces,$hand; # "current" is now pat.
+                                    undef $hand;
+                                } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
+                                    #line 9
+                                    #split, unshift new, incr splitsCnt, pat current
+                                    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                    ++$splitsCnt[$hand->{'pos'}];
+                                    unshift @places,$newSpotRef;
+                                    push @patPlaces,$hand; # "current" is now pat.
+                                    undef $hand;
+                                } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+                                    #line 10
+                                    #pat current
+                                    push @patPlaces,$hand; # "current" is now pat.
+                                    undef $hand;
+                                } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+                                    #line 11
+                                    #ERROR
+                                } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 0) {
+                                    #line 12
+                                    #split, unshift new, goto decision
+                                    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                    ++$splitsCnt[$hand->{'pos'}];
+                                    unshift @places,$newSpotRef;
+                                } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
+                                    #line 13
+                                    #split, unshift new, incr splitsCnt, goto decision
+                                    ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                    ++$splitsCnt[$hand->{'pos'}];
+                                    unshift @places,$newSpotRef;
+                                } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+                                    #line 14
+                                    #goto decision
+                                } elsif($hsa == 1 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+                                    #line 15
+                                    #ERROR
+                                } else {
+                                    #FAILTHROUGH
+                                }
+                            } #else gotoDecision
+                        } else { #~isA & isPair
+                            if($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+                                #line 19
+                                #split, unshift new, incr splitsCnt, goto decision
+                                ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                ++$splitsCnt[$hand->{'pos'}];
+                                unshift @places,$newSpotRef;
+                            } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
+                                #line 20
+                                #goto decision
+                            } elsif($nrs == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+                                #line 21
+                                #ERROR
+                            } elsif($nrs == 0 && $rs3 == 0) {
+                                #line 22
+                                #split, unshift new, goto decision
+                                ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                ++$splitsCnt[$hand->{'pos'}];
+                                unshift @places,$newSpotRef;
+                            } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+                                #line 23
+                                #split, unshift new, incr splitsCnt, goto decision
+                                ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                ++$splitsCnt[$hand->{'pos'}];
+                                unshift @places,$newSpotRef;
+                            } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
+                                #line 24
+                                #split, unshift new, incr splitsCnt, goto decision
+                                ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
+                                ++$splitsCnt[$hand->{'pos'}];
+                                unshift @places,$newSpotRef;
+                            } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
+                                #line 25
+                                #goto decision
+                            } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] >= 3) {
+                                #line 26
+                                #ERROR
+                            } else {
+                                #FAILTHROUGH
+                            }
+                        }
+                    }
+                } # if action eq 'sp'
 
 
 
-		## iterate s,h,su on current hand.
-		undef $action;
-		while(defined $hand) {
-		    $action = getAction(\@dealer, $hand, \%table, 'normal');
-		    if($action eq 'sp') {
-			print "ERROR:  splits were supposed to be handled earlier.\n";
-			exit(1);
-		    } elsif($action eq 'd') {
-			print "ERROR:  doubledowns were supposed to be handled earlier.\n";
-			exit(1);
-		    } elsif($action eq 'dh') { # treat as hit
-			my $newCard = deal(\@deck,\@discards);
-			push $hand->{'cards'},$newCard;
-			$hand->{'hist'} = $hand->{'hist'} . $newCard;
-			if(isBusted($hand->{'cards'})) {
-			    push @bustedPlaces,$hand; # "current" is now busted.
-			    undef $action;
-			    undef $hand;
-			}
-		    } elsif($action eq 'ds') { # treat as stand
-			push @patPlaces,$hand;
-			undef $hand;
-		    } elsif($action eq 's') {
-			push @patPlaces,$hand;
-			undef $hand;
-		    } elsif($action eq 'h') {
-			my $newCard = deal(\@deck,\@discards);
-			push $hand->{'cards'},$newCard;
-			$hand->{'hist'} = $hand->{'hist'} . $newCard;
-			if(isBusted($hand->{'cards'})) {
-			    push @bustedPlaces,$hand; # "current" is now busted.
-			    undef $action;
-			    undef $hand;
-			}
-		    } elsif($action eq 'su') {
-			if($esAllowed == 1 || $lsAllowed == 1) {
+
+                ## doubles handling
+                if(defined $hand && scalar @{$hand->{'cards'}} == 2) {
+                    if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
+                        if(hasAce($hand)) {
+                            $action = getAction(\@dealer, $hand, \%table, 'doubling');
+                            if($da == 0) {
+                                #line 3
+                                #pat current
+                            } elsif($da == 1 && $das == 1 && $ds == 1) {
+                                #line 4
+                                #dd, pat current
+                                my $ddCard = deal(\@deck,\@discards);
+                                push $hand->{'cards'},$ddCard;
+                                $hand->{'bet'} = 2.0 * $hand->{'bet'};
+                                $hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
+                                if(isBusted($hand->{'cards'})) {
+                                    push @bustedPlaces,$hand; # "current" is now busted.
+                                } else {
+                                    push @patPlaces,$hand; # "current" is now pat.
+                                }
+                                undef $hand;
+                            } elsif($das == 1 && $ds == 0) {
+                                #line 5
+                                #ERROR
+                            } elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] == 0) {
+                                #line 6
+                                #dd, pat current
+                                my $ddCard = deal(\@deck,\@discards);
+                                push $hand->{'cards'},$ddCard;
+                                $hand->{'bet'} = 2.0 * $hand->{'bet'};
+                                $hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
+                                if(isBusted($hand->{'cards'})) {
+                                    push @bustedPlaces,$hand; # "current" is now busted.
+                                } else {
+                                    push @patPlaces,$hand; # "current" is now pat.
+                                }
+                                undef $hand;
+                            } elsif($da == 1 && $das == 0 && $ds == 1 && $splitsCnt[$hand->{'pos'}] >= 1) {
+                                #line 7
+                                #goto decision
+                            } else {
+                                #FAILTHROUGH
+                            }
+                        } else { #~hasAce
+                            if($ds == 0) {
+                                #line 11
+                                #goto decision
+                            } elsif($ds == 1) {
+                                #line 12
+                                #dd, pat current
+                                my $ddCard = deal(\@deck,\@discards);
+                                push $hand->{'cards'},$ddCard;
+                                $hand->{'bet'} = 2.0 * $hand->{'bet'};
+                                $hand->{'hist'} = $hand->{'hist'} . 'dd' . $ddCard;
+                                if(isBusted($hand->{'cards'})) {
+                                    push @bustedPlaces,$hand; # "current" is now busted.
+                                } else {
+                                    push @patPlaces,$hand; # "current" is now pat.
+                                }
+                                undef $hand;
+                            } else {
+                                #FAILTHROUGH
+                            }
+                        }
+                    }
+                }
+
+
+
+                ## iterate s,h,su on current hand.
+                undef $action;
+                while(defined $hand) {
+                    $action = getAction(\@dealer, $hand, \%table, 'normal');
+                    if($action eq 'sp') {
+                        print "ERROR:  splits were supposed to be handled earlier.\n";
+                        exit(1);
+                    } elsif($action eq 'd') {
+                        print "ERROR:  doubledowns were supposed to be handled earlier.\n";
+                        exit(1);
+                    } elsif($action eq 'dh') { # treat as hit
+                        my $newCard = deal(\@deck,\@discards);
+                        push $hand->{'cards'},$newCard;
+                        $hand->{'hist'} = $hand->{'hist'} . $newCard;
+                        if(isBusted($hand->{'cards'})) {
+                            push @bustedPlaces,$hand; # "current" is now busted.
+                            undef $action;
+                            undef $hand;
+                        }
+                    } elsif($action eq 'ds') { # treat as stand
+                        push @patPlaces,$hand;
+                        undef $hand;
+                    } elsif($action eq 's') {
+                        push @patPlaces,$hand;
+                        undef $hand;
+                    } elsif($action eq 'h') {
+                        my $newCard = deal(\@deck,\@discards);
+                        push $hand->{'cards'},$newCard;
+                        $hand->{'hist'} = $hand->{'hist'} . $newCard;
+                        if(isBusted($hand->{'cards'})) {
+                            push @bustedPlaces,$hand; # "current" is now busted.
+                            undef $action;
+                            undef $hand;
+                        }
+                    } elsif($action eq 'su') {
+                        if($esAllowed == 1 || $lsAllowed == 1) {
 #FIXME: flesh out surrenders.
 #FIXME: su only on 2 cards?
-			} else {
-			    # treat as hit
-			    my $newCard = deal(\@deck,\@discards);
-			    push $hand->{'cards'},$newCard;
-			    $hand->{'hist'} = $hand->{'hist'} . $newCard;
-			    if(isBusted($hand->{'cards'})) {
-				push @bustedPlaces,$hand; # "current" is now busted.
-				undef $action;
-				undef $hand;
-			    }
-			}
-		    } else {
-			#FAILTHROUGH
-		    }
-		}
-	    } # foreach @places
+                        } else {
+                            # treat as hit
+                            my $newCard = deal(\@deck,\@discards);
+                            push $hand->{'cards'},$newCard;
+                            $hand->{'hist'} = $hand->{'hist'} . $newCard;
+                            if(isBusted($hand->{'cards'})) {
+                                push @bustedPlaces,$hand; # "current" is now busted.
+                                undef $action;
+                                undef $hand;
+                            }
+                        }
+                    } else {
+                        #FAILTHROUGH
+                    }
+                }
+            } # foreach @places
 
 
 
 
             ### dealer actions
-	    my @dealerTotalsAry = getTotals(\@dealer);
-	    my $dealerBest = bestTotal(\@dealerTotalsAry);
+            my @dealerTotalsAry = getTotals(\@dealer);
+            my $dealerBest = bestTotal(\@dealerTotalsAry);
 
-	    while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
-		my $dealerCard = deal(\@deck,\@discards);
-		push @dealer,$dealerCard;
-		@dealerTotalsAry = getTotals(\@dealer);
-		$dealerBest = bestTotal(\@dealerTotalsAry);
-	    }
-	}
-	my $fullCount = 4 * $nDecks;
-	my $inCount = KOValAry(\@deck);
-	my $outCount = $fullCount - $inCount;
-	if($DEBUG) {
-	    print "FINAL PATPLACES\n";
-	    print Dumper(\@patPlaces);
-	    print "FINAL BUSTEDPLACES\n";
-	    print Dumper(\@bustedPlaces);
-	    print "FINAL DEALER: " . join(' ',@dealer) . "\n";
-	    print "INCOUNT: $inCount\n";
-	    print "OUTCOUNT: $outCount\n";
-	    print "STUBSIZE: " . scalar @deck . " (" . (scalar @deck)/(52.0*$nDecks) . ")\n";
-	}
-	++$nRound;
-    }
-
+            while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
+                my $dealerCard = deal(\@deck,\@discards);
+                push @dealer,$dealerCard;
+                @dealerTotalsAry = getTotals(\@dealer);
+                $dealerBest = bestTotal(\@dealerTotalsAry);
+            }
+        }
+        my $fullCount = 4 * $nDecks;
+        my $inCount = KOValAry(\@deck);
+        my $outCount = $fullCount - $inCount;
+        if($DEBUG) {
+            print "FINAL PATPLACES\n";
+            print Dumper(\@patPlaces);
+            print "FINAL BUSTEDPLACES\n";
+            print Dumper(\@bustedPlaces);
+            print "FINAL DEALER: " . join(' ',@dealer) . "\n";
+            print "STUBSIZE: " . scalar @deck . " (" . (scalar @deck)/(52.0*$nDecks) . ")\n";
+        }
+        ++$nRound;
 
 
 #FIXME: naturals
 #FIXME: pushing naturals 
-
-
 
 #        ### collections, payouts, and discards
 #	# determine winners/losers
@@ -467,6 +461,12 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 #	exit(0);
 #
 #    }
+
+
+
+
+
+    }
 }
 
 
