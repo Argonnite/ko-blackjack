@@ -1,74 +1,73 @@
 DECK:
 $VAR1 = [
-          '5h',
-          '7h',
-          'as',
-          '3h',
-          '2s',
-          'jd',
-          '2h',
-          'qh',
-          'js',
-          'qc',
-          '9d',
-          '3d',
           '7d',
-          '8d',
-          '4h',
-          '9s',
+          'ah',
           '9c',
-          '5s',
-          '7s',
-          '2d',
+          '4c',
           '4s',
-          '6d',
-          'qd',
-          'kh',
-          '3c',
-          'qs',
-          '8s',
-          'ks',
-          'jc',
-          'ac',
-          '5d',
-          'jh',
-          'tc',
-          'th',
-          '2c',
+          '5c',
           '7c',
           '8h',
-          '5c',
-          '9h',
-          '3s',
+          'ks',
+          '3d',
+          '5d',
+          'jd',
+          '4h',
+          'js',
+          'td',
+          'jh',
+          'qc',
+          '8c',
+          '8d',
+          '2c',
+          'tc',
+          '5s',
+          'qs',
+          'qd',
+          'kh',
+          'qh',
+          '9s',
+          '7s',
+          'as',
+          '7h',
           '6s',
           'ad',
-          'kc',
-          'ts',
-          '4c',
           '6c',
-          'kd',
-          '4d',
+          '2s',
+          'ac',
           '6h',
-          'td',
-          'ah',
-          '8c'
+          '9d',
+          'ts',
+          '6d',
+          '2d',
+          '3s',
+          '9h',
+          '3h',
+          '3c',
+          '2h',
+          '4d',
+          'th',
+          'kc',
+          '8s',
+          'kd',
+          'jc',
+          '5h'
         ];
 
 NEW DEAL 0
-DO I GET HERE?B
 FINAL PATPLACES
 $VAR1 = [
           {
-            'bet' => 2,
+            'bet' => 1,
             'cards' => [
-                         'as',
-                         '3h',
-                         '2h'
+                         '9c',
+                         '4c',
+                         '7c'
                        ],
-            'change' => 2,
-            'hist' => '5h7h/as3hdd2h',
+            'change' => 1,
+            'hist' => '7dah/9c4c7c',
             'pos' => 0,
-            'preActionRC' => 2,
+            'preActionRC' => 3,
             'preDealRC' => 0,
             'round' => 0,
             'shoe' => 0,
@@ -78,13 +77,14 @@ $VAR1 = [
           {
             'bet' => 1,
             'cards' => [
-                         '2s',
-                         'jd'
+                         '4s',
+                         '5c',
+                         '8h'
                        ],
-            'change' => 1,
-            'hist' => '5h7h/2sjd',
+            'change' => -1,
+            'hist' => '7dah/4s5c8h',
             'pos' => 1,
-            'preActionRC' => 3,
+            'preActionRC' => 4,
             'preDealRC' => 0,
             'round' => 0,
             'shoe' => 0,
@@ -94,7 +94,7 @@ $VAR1 = [
         ];
 FINAL BUSTEDPLACES
 $VAR1 = [];
-FINAL DEALER: 5h 7h qh
+FINAL DEALER: 7d ah
 STUBSIZE: 44 (0.846153846153846)
 
 NEW DEAL 1
@@ -105,100 +105,100 @@ $VAR1 = [
           {
             'bet' => 1,
             'cards' => [
-                         '9d',
-                         '3d',
-                         '4h',
-                         '9s'
+                         '5d',
+                         'jd',
+                         'td'
                        ],
             'change' => -1,
-            'hist' => 'jsqc/9d3d4h9s',
+            'hist' => 'ks3d/5djdtd',
+            'pos' => 0,
+            'preActionRC' => 4,
+            'preDealRC' => 4,
+            'round' => 1,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          },
+          {
+            'bet' => 1,
+            'cards' => [
+                         '4h',
+                         'js',
+                         'jh'
+                       ],
+            'change' => -1,
+            'hist' => 'ks3d/4hjsjh',
+            'pos' => 1,
+            'preActionRC' => 3,
+            'preDealRC' => 4,
+            'round' => 1,
+            'shoe' => 0,
+            'splitID' => 0,
+            'surrenderRC' => undef
+          }
+        ];
+FINAL DEALER: ks 3d
+STUBSIZE: 36 (0.692307692307692)
+
+NEW DEAL 2
+FINAL PATPLACES
+$VAR1 = [
+          {
+            'bet' => 1,
+            'cards' => [
+                         '8d',
+                         '2c',
+                         'qs'
+                       ],
+            'change' => 1,
+            'hist' => 'qc8c/8d2cqs',
             'pos' => 0,
             'preActionRC' => 2,
             'preDealRC' => 2,
-            'round' => 1,
-            'shoe' => 0,
-            'splitID' => 0,
-            'surrenderRC' => undef
-          },
-          {
-            'bet' => 1,
-            'cards' => [
-                         '7d',
-                         '8d',
-                         '9c'
-                       ],
-            'change' => -1,
-            'hist' => 'jsqc/7d8d9c',
-            'pos' => 1,
-            'preActionRC' => 3,
-            'preDealRC' => 2,
-            'round' => 1,
+            'round' => 2,
             'shoe' => 0,
             'splitID' => 0,
             'surrenderRC' => undef
           }
         ];
-FINAL DEALER: js qc
-STUBSIZE: 35 (0.673076923076923)
-
-NEW DEAL 2
-DO I GET HERE?B
-FINAL PATPLACES
+FINAL BUSTEDPLACES
 $VAR1 = [
           {
             'bet' => 1,
             'cards' => [
-                         '2d',
-                         '4s',
-                         'kh'
-                       ],
-            'change' => 1,
-            'hist' => '5s7s/2d4skh',
-            'pos' => 0,
-            'preActionRC' => 7,
-            'preDealRC' => 3,
-            'round' => 2,
-            'shoe' => 0,
-            'splitID' => 0,
-            'surrenderRC' => undef
-          },
-          {
-            'bet' => 1,
-            'cards' => [
-                         '6d',
+                         'tc',
+                         '5s',
                          'qd'
                        ],
-            'change' => 1,
-            'hist' => '5s7s/6dqd',
+            'change' => -1,
+            'hist' => 'qc8c/tc5sqd',
             'pos' => 1,
-            'preActionRC' => 6,
-            'preDealRC' => 3,
+            'preActionRC' => 1,
+            'preDealRC' => 2,
             'round' => 2,
             'shoe' => 0,
             'splitID' => 0,
             'surrenderRC' => undef
           }
         ];
-FINAL BUSTEDPLACES
-$VAR1 = [];
-FINAL DEALER: 5s 7s 3c qs
-STUBSIZE: 26 (0.5)
+FINAL DEALER: qc 8c
+STUBSIZE: 28 (0.538461538461538)
 
 NEW DEAL 3
-DO I GET HERE?1
 FINAL PATPLACES
 $VAR1 = [
           {
             'bet' => 1,
             'cards' => [
-                         'jc',
-                         'ac'
+                         'as',
+                         '7h',
+                         'ad'
                        ],
-            'change' => '1.5',
-            'hist' => '8sks/jcac',
-            'pos' => 0,
-            'preActionRC' => 3,
-            'preDealRC' => 6,
+            'change' => -1,
+            'hist' => 'khqh/as7had',
+            'pos' => 1,
+            'preActionRC' => 0,
+            'preDealRC' => 0,
             'round' => 3,
             'shoe' => 0,
             'splitID' => 0,
@@ -210,20 +210,20 @@ $VAR1 = [
           {
             'bet' => 1,
             'cards' => [
-                         '5d',
-                         'jh',
-                         'tc'
+                         '9s',
+                         '7s',
+                         '6s'
                        ],
             'change' => -1,
-            'hist' => '8sks/5djhtc',
-            'pos' => 1,
-            'preActionRC' => 3,
-            'preDealRC' => 6,
+            'hist' => 'khqh/9s7s6s',
+            'pos' => 0,
+            'preActionRC' => -1,
+            'preDealRC' => 0,
             'round' => 3,
             'shoe' => 0,
             'splitID' => 0,
             'surrenderRC' => undef
           }
         ];
-FINAL DEALER: 8s ks
-STUBSIZE: 19 (0.365384615384615)
+FINAL DEALER: kh qh
+STUBSIZE: 20 (0.384615384615385)

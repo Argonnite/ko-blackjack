@@ -57,9 +57,9 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 #    if($DEBUG) {
 #    ### load a test
-###	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
-###	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
-#    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I> };
+###	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); I> };
+###	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); I> };
+#    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I>};
 #    eval $command;
 #    }
 
@@ -112,6 +112,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 #FIXME: ask for insurance here if ace shows.
 
+        my $dealerBest; 
         my $bDealerHasBJ = 0;
         if(isNatural(\@dealer)) { #process dealer bj.
             @patPlaces = @places;
@@ -249,7 +250,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 
 
-
                 ## doubles handling
                 if(defined $hand && scalar @{$hand->{'cards'}} == 2) {
                     if($action eq 'dh' or $action eq 'd' or $action eq 'ds') {
@@ -376,29 +376,29 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 
 
-
             ### dealer actions
-            my @dealerTotalsAry = getTotals(\@dealer);
-            my $dealerBest = bestTotal(\@dealerTotalsAry);
-
-            while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
-                my $dealerCard = deal(\@deck,\@discards);
-                push @dealer,$dealerCard;
-                @dealerTotalsAry = getTotals(\@dealer);
+            if(scalar @patPlaces > 0) { # if everyone busted, dealer doesn't have to continue.
+                my @dealerTotalsAry = getTotals(\@dealer);
                 $dealerBest = bestTotal(\@dealerTotalsAry);
+                
+                while(($dealerBest < 17 or ( ($h17 == 1) and ($dealerBest == 17 and isSoft(\@dealer)) ) ) and not isBusted(\@dealer)) {
+                    my $dealerCard = deal(\@deck,\@discards);
+                    push @dealer,$dealerCard;
+                    @dealerTotalsAry = getTotals(\@dealer);
+                    $dealerBest = bestTotal(\@dealerTotalsAry);
+                }
             }
-        }
+        } #handle player actions normally.
 
 
 
         ### collections, payouts, and discards
-
-        # collect on busted hands.
+        ## collect on busted hands.
         foreach my $bustedHand (@bustedPlaces) {
             $bustedHand->{'change'} = -$bustedHand->{'bet'};
         }
 
-        # determine winners.
+        ## determine winners.
         if($bDealerHasBJ == 1) {
             foreach my $patHand (@patPlaces) {
                 if(isNatural($patHand->{'cards'})) {
