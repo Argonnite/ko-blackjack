@@ -55,13 +55,13 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my @discards = ();
 
 
-    if($DEBUG) {
-    ### load a test
-##	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
-##	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
+#    if($DEBUG) {
+#    ### load a test
+###	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); <I> };
+###	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); <I> };
 #    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I> };
 #    eval $command;
-    }
+#    }
 
 
     if($DEBUG) {
@@ -112,11 +112,11 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 #FIXME: ask for insurance here if ace shows.
 
-
+        my $bDealerHasBJ = 0;
         if(isNatural(\@dealer)) { #process dealer bj.
             @patPlaces = @places;
             @places = ();
-#FIXME: preActionRC here?
+            $bDealerHasBJ = 0;
         } else {#handle player actions normally.
             while (scalar @places) {
                 my $hand = shift @places;
@@ -388,9 +388,56 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                 $dealerBest = bestTotal(\@dealerTotalsAry);
             }
         }
-        my $fullCount = 4 * $nDecks;
-        my $inCount = KOValAry(\@deck);
-        my $outCount = $fullCount - $inCount;
+
+
+
+        ### collections, payouts, and discards
+
+        # collect on busted hands.
+        foreach my $bustedHand (@bustedPlaces) {
+            $bustedHand->{'change'} = -$bustedHand->{'bet'};
+        }
+
+        # determine winners.
+        if($bDealerHasBJ == 1) {
+            foreach my $patHand (@patPlaces) {
+                if(isNatural($patHand->{'cards'})) {
+                    $patHand->{'change'} = 0;
+                } else {
+                    $patHand->{'change'} = -$patHand->{'bet'};
+                }
+            }
+        } elsif(isBusted(\@dealer)) {
+            foreach my $patHand (@patPlaces) {
+                if(isNatural($patHand->{'cards'})) {
+                    if($splitsCnt[$patHand->{'pos'}] == 0) {  #ensuring it's not a fake "split" bj
+                        $patHand->{'change'} = $bjPayout * $patHand->{'bet'};
+                    } else {
+                        $patHand->{'change'} = $patHand->{'bet'};
+                    }
+                } else {
+                    $patHand->{'change'} = $patHand->{'bet'};
+                }
+            }
+        } else {
+            foreach my $patHand (@patPlaces) {
+                my @tmp = getTotals($patHand->{'cards'});
+                my $pTot = bestTotal(\@tmp);
+                if($pTot > $dealerBest) {
+                    if(isNatural($patHand->{'cards'})) {
+                        $patHand->{'change'} = $bjPayout * $patHand->{'bet'};
+                    } else {
+                        $patHand->{'change'} = $patHand->{'bet'};
+                    }
+                } elsif($pTot < $dealerBest) {
+                    $patHand->{'change'} = -$patHand->{'bet'};
+                } else {
+                    $patHand->{'change'} = 0;
+                }
+            }
+        }
+
+
         if($DEBUG) {
             print "FINAL PATPLACES\n";
             print Dumper(\@patPlaces);
@@ -400,72 +447,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
             print "STUBSIZE: " . scalar @deck . " (" . (scalar @deck)/(52.0*$nDecks) . ")\n";
         }
         ++$nRound;
-
-
-#FIXME: naturals
-#FIXME: pushing naturals 
-
-#        ### collections, payouts, and discards
-#	# determine winners/losers
-#	if(isBusted(\@dealer)) {
-#	    foreach my $patHand (@patPlaces) {
-#print "DO I GET HERE?1\n";
-#		if(isNatural($patHand->{'cards'})) {
-#		    if($splitsCnt[$patHand->{'pos'}] == 0) {
-#			$patHand->{'won'} = "bj";
-#		    } else {
-#			$patHand->{'won'} = "yes";
-#		    }
-#		} else {
-#		    $patHand->{'won'} = "yes";
-#		}
-#	    }
-#	} elsif(isNatural(\@dealer)) {
-#print "DO I GET HERE?2\n";
-#	    foreach my $patHand (@patPlaces) {
-#		if(isNatural($patHand->{'cards'})) {
-#		    $patHand->{'pushed'} = "yes";
-#		} else {
-#		    $patHand->{'lost'} = "yes";
-#		}
-#	    }
-#	} else {
-#print "DO I GET HERE?3\n";
-#	    foreach my $patHand (@patPlaces) {
-#		my @tmp = getTotals($patHand->{'cards'});
-#		my $pTot = bestTotal(\@tmp);
-#print "TMP: " . Dumper(\@tmp);
-#print "PTOT = $pTot\n";
-#		if($pTot > $dealerBest) {
-#print "DO I GET HERE?3a\n";
-#		    if(isNatural($patHand->{'cards'})) {
-#			$patHand->{'won'} = "bj";
-#		    } else {
-#			$patHand->{'won'} = "yes";
-#		    }
-#		} elsif($pTot < $dealerBest) {
-#print "DO I GET HERE?3b\n";
-#		    $patHand->{'lost'} = "yes";
-#		} else {
-#print "DO I GET HERE?3c\n";
-#		    $patHand->{'pushed'} = "yes";
-#		}
-#	    }
-#	}
-#	print "PATPLACES\n";
-#	print Dumper(\@patPlaces);
-#
-#
-#	print "REMAINING: " . scalar @deck . "\n";
-#	print "CUTPOINT: $fPenetrationCard\n";
-#	exit(0);
-#
-#    }
-
-
-
-
-
     }
 }
 
@@ -583,13 +564,11 @@ sub deal {
     my $discardsRef = shift(@_);
 
     if(scalar @{$deckRef} < 1) {
-#FIXME: reshuffle discards here.	
-	print "ERROR: Deck running out.\n";
-	exit(0);
+        print "ERROR: Currently not dealing from discards on runouts.\n";
+        exit(1);
     } else {
-	return shift @{$deckRef};
+        return shift @{$deckRef};
     }
-
 }
 
 
