@@ -378,6 +378,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
             ### dealer actions
             if(scalar @patPlaces > 0) { # if everyone busted, dealer doesn't have to continue.
+#FIXME: if everyone bj'ed, dealer doesn't have to continue.
                 my @dealerTotalsAry = getTotals(\@dealer);
                 $dealerBest = bestTotal(\@dealerTotalsAry);
                 
@@ -399,6 +400,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         }
 
         ## determine winners.
+#FIXME: NEW DEAL 40 bug here?
         if($bDealerHasBJ == 1) {
             foreach my $patHand (@patPlaces) {
                 if(isNatural($patHand->{'cards'})) {
@@ -439,13 +441,13 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 			}
                     }
                 } else {
-			if($pTot > $dealerBest) {
-			    $patHand->{'change'} = $patHand->{'bet'};
-			} elsif($pTot < $dealerBest) {
-			    $patHand->{'change'} = -$patHand->{'bet'};
-			} else {
-			    $patHand->{'change'} = 0;
-			}
+		    if($pTot > $dealerBest) {
+			$patHand->{'change'} = $patHand->{'bet'};
+		    } elsif($pTot < $dealerBest) {
+			$patHand->{'change'} = -$patHand->{'bet'};
+		    } else {
+			$patHand->{'change'} = 0;
+		    }
                 }
             }
         }
