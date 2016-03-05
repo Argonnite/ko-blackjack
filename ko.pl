@@ -4,6 +4,7 @@ use Scalar::Util qw/looks_like_number/;
 $Data::Dumper::Sortkeys = 1;
 
 my $DEBUG = 1;
+my $CSVOUTPUT = 0;
 
 #FIXME: create a param object.
 #FIXME: test nsa==1 and aa.
@@ -36,6 +37,20 @@ my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
 my %table = ();
 generate(\%table); ### basic strategy
 
+#if($CSVOUTPUT) {
+#change
+#hist
+#pos
+#preDealRC
+#prePlayerActionRC
+#round
+#shoe
+#splitID
+#dealerHist
+#timestamp
+#}
+
+#FIXME: save a timestamp here.
 
 for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
@@ -452,6 +467,18 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         }
 
 
+
+	### preserce dealer hist.
+	my $dealerHist = join('',@dealer);
+	foreach my $playerHand (@patPlaces) {
+	    $playerHand->{'dHist'} = $dealerHist;
+	}
+	foreach my $playerHand (@bustedPlaces) {
+	    $playerHand->{'dHist'} = $dealerHist;
+	}
+
+
+
         if($DEBUG) {
             print "FINAL PATPLACES\n";
             print Dumper(\@patPlaces);
@@ -460,6 +487,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
             print "FINAL DEALER: " . join(' ',@dealer) . "\n";
             print "STUBSIZE: " . scalar @deck . " (" . (scalar @deck)/(52.0*$nDecks) . ")\n";
         }
+
         ++$nRound;
     }
 }

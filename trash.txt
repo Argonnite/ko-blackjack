@@ -429,6 +429,7 @@ $VAR1 = [
                          '6h'
                        ],
             'change' => 1,
+            'dHist' => 'ks2sjd',
             'hist' => 'ks2s/ah2h6h',
             'pos' => 0,
             'preDealRC' => 0,
@@ -446,6 +447,7 @@ $VAR1 = [
                          '7d'
                        ],
             'change' => 1,
+            'dHist' => 'ks2sjd',
             'hist' => 'ks2s/6s4d7d',
             'pos' => 1,
             'preDealRC' => 0,
@@ -471,6 +473,7 @@ $VAR1 = [
                          'kc'
                        ],
             'change' => 1,
+            'dHist' => 'qc9d',
             'hist' => 'qc9d/thkc',
             'pos' => 0,
             'preDealRC' => 3,
@@ -492,6 +495,7 @@ $VAR1 = [
                          'qc'
                        ],
             'change' => -1,
+            'dHist' => 'qc9d',
             'hist' => 'qc9d/3d4s7dqc',
             'pos' => 1,
             'preDealRC' => 3,
@@ -515,6 +519,7 @@ $VAR1 = [
                          '9c'
                        ],
             'change' => -1,
+            'dHist' => '8d3hjh',
             'hist' => '8d3h/qd9c',
             'pos' => 0,
             'preDealRC' => 2,
@@ -531,6 +536,7 @@ $VAR1 = [
                          '8c'
                        ],
             'change' => -1,
+            'dHist' => '8d3hjh',
             'hist' => '8d3h/qs8c',
             'pos' => 1,
             'preDealRC' => 2,
@@ -556,6 +562,7 @@ $VAR1 = [
                          'ks'
                        ],
             'change' => -1,
+            'dHist' => '7s8had4h',
             'hist' => '7s8h/9hks',
             'pos' => 0,
             'preDealRC' => 0,
@@ -572,6 +579,7 @@ $VAR1 = [
                          '9d'
                        ],
             'change' => -1,
+            'dHist' => '7s8had4h',
             'hist' => '7s8h/jc9d',
             'pos' => 1,
             'preDealRC' => 0,
@@ -597,6 +605,7 @@ $VAR1 = [
                          '7d'
                        ],
             'change' => -1,
+            'dHist' => '3h8dts',
             'hist' => '3h8d/jh7d',
             'pos' => 0,
             'preDealRC' => -1,
@@ -614,6 +623,7 @@ $VAR1 = [
                          '7d'
                        ],
             'change' => -2,
+            'dHist' => '3h8dts',
             'hist' => '3h8d/5c6ddd7d',
             'pos' => 1,
             'preDealRC' => -1,
@@ -640,6 +650,7 @@ $VAR1 = [
                          '5h'
                        ],
             'change' => 1,
+            'dHist' => '3hkcks',
             'hist' => '3hkc/2cts5h',
             'pos' => 0,
             'preDealRC' => 2,
@@ -656,6 +667,7 @@ $VAR1 = [
                          '7h'
                        ],
             'change' => 1,
+            'dHist' => '3hkcks',
             'hist' => '3hkc/th7h',
             'pos' => 1,
             'preDealRC' => 2,
@@ -681,6 +693,7 @@ $VAR1 = [
                          'ac'
                        ],
             'change' => '1.5',
+            'dHist' => '4s5s9h',
             'hist' => '4s5s/ksac',
             'pos' => 0,
             'preDealRC' => 2,
@@ -697,6 +710,7 @@ $VAR1 = [
                          'kh'
                        ],
             'change' => -1,
+            'dHist' => '4s5s9h',
             'hist' => '4s5s/6ckh',
             'pos' => 1,
             'preDealRC' => 2,
@@ -722,6 +736,7 @@ $VAR1 = [
                          'th'
                        ],
             'change' => 1,
+            'dHist' => '9s7c3d',
             'hist' => '9s7c/thth',
             'pos' => 0,
             'preDealRC' => 2,
@@ -738,6 +753,7 @@ $VAR1 = [
                          'qc'
                        ],
             'change' => 0,
+            'dHist' => '9s7c3d',
             'hist' => '9s7c/9hqc',
             'pos' => 1,
             'preDealRC' => 2,
@@ -764,6 +780,7 @@ $VAR1 = [
                          '5s'
                        ],
             'change' => 0,
+            'dHist' => 'tskc',
             'hist' => 'tskc/4das5s',
             'pos' => 0,
             'preDealRC' => 1,
@@ -781,6 +798,7 @@ $VAR1 = [
                          '4c'
                        ],
             'change' => -1,
+            'dHist' => 'tskc',
             'hist' => 'tskc/9d6c4c',
             'pos' => 1,
             'preDealRC' => 1,
@@ -806,6 +824,7 @@ $VAR1 = [
                          'ad'
                        ],
             'change' => '1.5',
+            'dHist' => 'js2hth',
             'hist' => 'js2h/kdad',
             'pos' => 0,
             'preDealRC' => 2,
@@ -823,6 +842,7 @@ $VAR1 = [
                          '6d'
                        ],
             'change' => 1,
+            'dHist' => 'js2hth',
             'hist' => 'js2h/5dqd6d',
             'pos' => 1,
             'preDealRC' => 2,
@@ -848,6 +868,7 @@ $VAR1 = [
                          'ah'
                        ],
             'change' => '1.5',
+            'dHist' => 'td3h5c',
             'hist' => 'td3h/qdah',
             'pos' => 0,
             'preDealRC' => 0,
@@ -864,6 +885,7 @@ $VAR1 = [
                          '7h'
                        ],
             'change' => -1,
+            'dHist' => 'td3h5c',
             'hist' => 'td3h/td7h',
             'pos' => 1,
             'preDealRC' => 0,
@@ -890,6 +912,7 @@ $VAR1 = [
                          'kd'
                        ],
             'change' => 2,
+            'dHist' => '2s2d4cjs',
             'hist' => '2s2d/7c3sddkd',
             'pos' => 0,
             'preDealRC' => -1,
@@ -906,6 +929,7 @@ $VAR1 = [
                          'qs'
                        ],
             'change' => '1.5',
+            'dHist' => '2s2d4cjs',
             'hist' => '2s2d/acqs',
             'pos' => 1,
             'preDealRC' => -1,
@@ -932,6 +956,7 @@ $VAR1 = [
                          '9c'
                        ],
             'change' => 2,
+            'dHist' => 'ts2hjd',
             'hist' => 'ts2h/3s8cdd9c',
             'pos' => 0,
             'preDealRC' => 0,
@@ -948,6 +973,7 @@ $VAR1 = [
                          'jh'
                        ],
             'change' => 1,
+            'dHist' => 'ts2hjd',
             'hist' => 'ts2h/jdjh',
             'pos' => 1,
             'preDealRC' => 0,
@@ -973,6 +999,7 @@ $VAR1 = [
                          'js'
                        ],
             'change' => 1,
+            'dHist' => '5hjh4c',
             'hist' => '5hjh/asasspasjs',
             'pos' => 0,
             'preDealRC' => -2,
@@ -989,6 +1016,7 @@ $VAR1 = [
                          'qh'
                        ],
             'change' => 1,
+            'dHist' => '5hjh4c',
             'hist' => '5hjh/asasspasqh',
             'pos' => 0,
             'preDealRC' => -2,
@@ -1005,6 +1033,7 @@ $VAR1 = [
                          'ks'
                        ],
             'change' => 0,
+            'dHist' => '5hjh4c',
             'hist' => '5hjh/9hks',
             'pos' => 1,
             'preDealRC' => -2,
@@ -1031,6 +1060,7 @@ $VAR1 = [
                          'qs'
                        ],
             'change' => 2,
+            'dHist' => '5ctckc',
             'hist' => '5ctc/3h6sddqs',
             'pos' => 0,
             'preDealRC' => -6,
@@ -1048,6 +1078,7 @@ $VAR1 = [
                          '3h'
                        ],
             'change' => 2,
+            'dHist' => '5ctckc',
             'hist' => '5ctc/5sahdd3h',
             'pos' => 1,
             'preDealRC' => -6,
@@ -1073,6 +1104,7 @@ $VAR1 = [
                          'qd'
                        ],
             'change' => -1,
+            'dHist' => '6cjs4h',
             'hist' => '6cjs/5dqd',
             'pos' => 0,
             'preDealRC' => -5,
@@ -1090,6 +1122,7 @@ $VAR1 = [
                          '7h'
                        ],
             'change' => -2,
+            'dHist' => '6cjs4h',
             'hist' => '6cjs/7s2sdd7h',
             'pos' => 1,
             'preDealRC' => -5,
@@ -1115,6 +1148,7 @@ $VAR1 = [
                          'jc'
                        ],
             'change' => -1,
+            'dHist' => '9djc',
             'hist' => '9djc/8hjc',
             'pos' => 0,
             'preDealRC' => -1,
@@ -1132,6 +1166,7 @@ $VAR1 = [
                          '9s'
                        ],
             'change' => 0,
+            'dHist' => '9djc',
             'hist' => '9djc/7s3cdd9s',
             'pos' => 1,
             'preDealRC' => -1,
@@ -1159,6 +1194,7 @@ $VAR1 = [
                          '4c'
                        ],
             'change' => -1,
+            'dHist' => '7c2c6h4d',
             'hist' => '7c2c/5d2s7c4c',
             'pos' => 0,
             'preDealRC' => -1,
@@ -1179,6 +1215,7 @@ $VAR1 = [
                          'td'
                        ],
             'change' => -1,
+            'dHist' => '7c2c6h4d',
             'hist' => '7c2c/4c8htd',
             'pos' => 1,
             'preDealRC' => -1,
@@ -1203,6 +1240,7 @@ $VAR1 = [
                          '5h'
                        ],
             'change' => 1,
+            'dHist' => '7dts',
             'hist' => '7dts/jh6c5h',
             'pos' => 0,
             'preDealRC' => 7,
@@ -1219,6 +1257,7 @@ $VAR1 = [
                          'tc'
                        ],
             'change' => 1,
+            'dHist' => '7dts',
             'hist' => '7dts/8stc',
             'pos' => 1,
             'preDealRC' => 7,
@@ -1244,6 +1283,7 @@ $VAR1 = [
                          '9s'
                        ],
             'change' => 1,
+            'dHist' => '2s8d4stc',
             'hist' => '2s8d/6s9s',
             'pos' => 0,
             'preDealRC' => 7,
@@ -1261,6 +1301,7 @@ $VAR1 = [
                          '3c'
                        ],
             'change' => 2,
+            'dHist' => '2s8d4stc',
             'hist' => '2s8d/2d8ddd3c',
             'pos' => 1,
             'preDealRC' => 7,
@@ -1287,6 +1328,7 @@ $VAR1 = [
                          'tc'
                        ],
             'change' => 2,
+            'dHist' => '7hkc',
             'hist' => '7hkc/8d2sddtc',
             'pos' => 0,
             'preDealRC' => 11,
@@ -1307,6 +1349,7 @@ $VAR1 = [
                          '9s'
                        ],
             'change' => -1,
+            'dHist' => '7hkc',
             'hist' => '7hkc/qc4s9s',
             'pos' => 1,
             'preDealRC' => 11,
@@ -1331,6 +1374,7 @@ $VAR1 = [
                          '5h'
                        ],
             'change' => 1,
+            'dHist' => 'qc4dqh',
             'hist' => 'qc4d/7c9s5h',
             'pos' => 1,
             'preDealRC' => 11,
@@ -1351,6 +1395,7 @@ $VAR1 = [
                          '8d'
                        ],
             'change' => -1,
+            'dHist' => 'qc4dqh',
             'hist' => 'qc4d/kd6c8d',
             'pos' => 0,
             'preDealRC' => 11,
@@ -1374,6 +1419,7 @@ $VAR1 = [
                          'kd'
                        ],
             'change' => 0,
+            'dHist' => '4hth3c',
             'hist' => '4hth/7skd',
             'pos' => 0,
             'preDealRC' => 12,
@@ -1390,6 +1436,7 @@ $VAR1 = [
                          '3d'
                        ],
             'change' => -1,
+            'dHist' => '4hth3c',
             'hist' => '4hth/jd3d',
             'pos' => 1,
             'preDealRC' => 12,
@@ -1415,6 +1462,7 @@ $VAR1 = [
                          'tc'
                        ],
             'change' => 1,
+            'dHist' => '3s6c5sjd',
             'hist' => '3s6c/8stc',
             'pos' => 0,
             'preDealRC' => 13,
@@ -1433,6 +1481,7 @@ $VAR1 = [
                          'jh'
                        ],
             'change' => 1,
+            'dHist' => '3s6c5sjd',
             'hist' => '3s6c/2h4h4djh',
             'pos' => 1,
             'preDealRC' => 13,
@@ -1458,6 +1507,7 @@ $VAR1 = [
                          'js'
                        ],
             'change' => 0,
+            'dHist' => 'ad9c',
             'hist' => 'ad9c/kcjs',
             'pos' => 0,
             'preDealRC' => 16,
@@ -1475,6 +1525,7 @@ $VAR1 = [
                          '5c'
                        ],
             'change' => -1,
+            'dHist' => 'ad9c',
             'hist' => 'ad9c/4cjc5c',
             'pos' => 1,
             'preDealRC' => 16,
@@ -1501,6 +1552,7 @@ $VAR1 = [
                          'as'
                        ],
             'change' => -1,
+            'dHist' => 'jhjh',
             'hist' => 'jhjh/7dadas',
             'pos' => 0,
             'preDealRC' => 14,
@@ -1523,6 +1575,7 @@ $VAR1 = [
                          'qs'
                        ],
             'change' => -1,
+            'dHist' => 'jhjh',
             'hist' => 'jhjh/2d7h5h2dqs',
             'pos' => 1,
             'preDealRC' => 14,
@@ -1549,6 +1602,7 @@ $VAR1 = [
                          'kh'
                        ],
             'change' => -1,
+            'dHist' => 'tc3h',
             'hist' => 'tc3h/3s9skh',
             'pos' => 0,
             'preDealRC' => 14,
@@ -1566,6 +1620,7 @@ $VAR1 = [
                          'kh'
                        ],
             'change' => -1,
+            'dHist' => 'tc3h',
             'hist' => 'tc3h/5c9skh',
             'pos' => 1,
             'preDealRC' => 14,
@@ -1590,6 +1645,7 @@ $VAR1 = [
                          'ac'
                        ],
             'change' => 0,
+            'dHist' => 'thqh',
             'hist' => 'thqh/6h3sac',
             'pos' => 0,
             'preDealRC' => 14,
@@ -1610,6 +1666,7 @@ $VAR1 = [
                          'tc'
                        ],
             'change' => -1,
+            'dHist' => 'thqh',
             'hist' => 'thqh/4s8stc',
             'pos' => 1,
             'preDealRC' => 14,
@@ -1636,6 +1693,7 @@ $VAR1 = [
                          'jc'
                        ],
             'change' => -1,
+            'dHist' => '8hqs',
             'hist' => '8hqs/kc3sjc',
             'pos' => 0,
             'preDealRC' => 13,
@@ -1653,6 +1711,7 @@ $VAR1 = [
                          'kh'
                        ],
             'change' => -1,
+            'dHist' => '8hqs',
             'hist' => '8hqs/9s3dkh',
             'pos' => 1,
             'preDealRC' => 13,
@@ -1676,6 +1735,7 @@ $VAR1 = [
                          '2d'
                        ],
             'change' => 1,
+            'dHist' => '4hjskh',
             'hist' => '4hjs/td2d',
             'pos' => 0,
             'preDealRC' => 11,
@@ -1692,6 +1752,7 @@ $VAR1 = [
                          'qh'
                        ],
             'change' => 1,
+            'dHist' => '4hjskh',
             'hist' => '4hjs/2cqh',
             'pos' => 1,
             'preDealRC' => 11,
@@ -1718,6 +1779,7 @@ $VAR1 = [
                          '3d'
                        ],
             'change' => 1,
+            'dHist' => '9djd',
             'hist' => '9djd/7cas3d',
             'pos' => 0,
             'preDealRC' => 10,
@@ -1735,6 +1797,7 @@ $VAR1 = [
                          '5c'
                        ],
             'change' => -1,
+            'dHist' => '9djd',
             'hist' => '9djd/7c6s5c',
             'pos' => 1,
             'preDealRC' => 10,
@@ -1760,6 +1823,7 @@ $VAR1 = [
                          '8h'
                        ],
             'change' => 1,
+            'dHist' => '8cqd',
             'hist' => '8cqd/ah8h',
             'pos' => 1,
             'preDealRC' => 13,
@@ -1782,6 +1846,7 @@ $VAR1 = [
                          '8s'
                        ],
             'change' => -1,
+            'dHist' => '8cqd',
             'hist' => '8cqd/3d4h5s2h8s',
             'pos' => 0,
             'preDealRC' => 13,
@@ -1808,6 +1873,7 @@ $VAR1 = [
                          '5c'
                        ],
             'change' => -1,
+            'dHist' => 'kdkd',
             'hist' => 'kdkd/2s3sah6s5c',
             'pos' => 0,
             'preDealRC' => 15,
@@ -1824,6 +1890,7 @@ $VAR1 = [
                          '9h'
                        ],
             'change' => 0,
+            'dHist' => 'kdkd',
             'hist' => 'kdkd/as9h',
             'pos' => 1,
             'preDealRC' => 15,
@@ -1849,6 +1916,7 @@ $VAR1 = [
                          '6c'
                        ],
             'change' => -1,
+            'dHist' => '5dqc5h',
             'hist' => '5dqc/th6c',
             'pos' => 0,
             'preDealRC' => 15,
@@ -1865,6 +1933,7 @@ $VAR1 = [
                          '9h'
                        ],
             'change' => -1,
+            'dHist' => '5dqc5h',
             'hist' => '5dqc/kd9h',
             'pos' => 1,
             'preDealRC' => 15,
@@ -1890,6 +1959,7 @@ $VAR1 = [
                          '5h'
                        ],
             'change' => -1,
+            'dHist' => '6sactd',
             'hist' => '6sac/jc5h',
             'pos' => 0,
             'preDealRC' => 15,
@@ -1906,6 +1976,7 @@ $VAR1 = [
                          '8c'
                        ],
             'change' => 0,
+            'dHist' => '6sactd',
             'hist' => '6sac/9c8c',
             'pos' => 1,
             'preDealRC' => 15,
@@ -1932,6 +2003,7 @@ $VAR1 = [
                          '6s'
                        ],
             'change' => -1,
+            'dHist' => '3d8s2c2c6h',
             'hist' => '3d8s/td2d6s',
             'pos' => 0,
             'preDealRC' => 14,
@@ -1949,6 +2021,7 @@ $VAR1 = [
                          '6h'
                        ],
             'change' => -1,
+            'dHist' => '3d8s2c2c6h',
             'hist' => '3d8s/6h2c6h',
             'pos' => 1,
             'preDealRC' => 14,
@@ -1975,6 +2048,7 @@ $VAR1 = [
                          'ad'
                        ],
             'change' => 1,
+            'dHist' => 'jcqh',
             'hist' => 'jcqh/3d7sad',
             'pos' => 0,
             'preDealRC' => 22,
@@ -1991,6 +2065,7 @@ $VAR1 = [
                          'qc'
                        ],
             'change' => 0,
+            'dHist' => 'jcqh',
             'hist' => 'jcqh/qdqc',
             'pos' => 1,
             'preDealRC' => 22,
@@ -2016,6 +2091,7 @@ $VAR1 = [
                          '9c'
                        ],
             'change' => 1,
+            'dHist' => '6d8h2sjd',
             'hist' => '6d8h/5d9c',
             'pos' => 0,
             'preDealRC' => 19,
@@ -2033,6 +2109,7 @@ $VAR1 = [
                          '3h'
                        ],
             'change' => 2,
+            'dHist' => '6d8h2sjd',
             'hist' => '6d8h/6dahdd3h',
             'pos' => 1,
             'preDealRC' => 19,
@@ -2058,6 +2135,7 @@ $VAR1 = [
                          'qd'
                        ],
             'change' => 1,
+            'dHist' => '3c2c8d4s',
             'hist' => '3c2c/8cqd',
             'pos' => 0,
             'preDealRC' => 22,
@@ -2074,6 +2152,7 @@ $VAR1 = [
                          'ts'
                        ],
             'change' => '1.5',
+            'dHist' => '3c2c8d4s',
             'hist' => '3c2c/acts',
             'pos' => 1,
             'preDealRC' => 22,
@@ -2099,6 +2178,7 @@ $VAR1 = [
                          'tc'
                        ],
             'change' => 0,
+            'dHist' => 'qhkh',
             'hist' => 'qhkh/qhtc',
             'pos' => 0,
             'preDealRC' => 22,
@@ -2116,6 +2196,7 @@ $VAR1 = [
                          'as'
                        ],
             'change' => 0,
+            'dHist' => 'qhkh',
             'hist' => 'qhkh/6h3cas',
             'pos' => 1,
             'preDealRC' => 22,
@@ -2141,6 +2222,7 @@ $VAR1 = [
                          'qs'
                        ],
             'change' => -1,
+            'dHist' => 'adjc',
             'hist' => 'adjc/7sqs',
             'pos' => 0,
             'preDealRC' => 19,
@@ -2156,6 +2238,7 @@ $VAR1 = [
                          '4d'
                        ],
             'change' => -1,
+            'dHist' => 'adjc',
             'hist' => 'adjc/5s4d',
             'pos' => 1,
             'preDealRC' => 19,
@@ -2180,6 +2263,7 @@ $VAR1 = [
                          'kh'
                        ],
             'change' => 1,
+            'dHist' => '6d6cqs',
             'hist' => '6d6c/qskh',
             'pos' => 0,
             'preDealRC' => 19,
@@ -2196,6 +2280,7 @@ $VAR1 = [
                          '8c'
                        ],
             'change' => 1,
+            'dHist' => '6d6cqs',
             'hist' => '6d6c/5h8c',
             'pos' => 1,
             'preDealRC' => 19,
@@ -2222,6 +2307,7 @@ $VAR1 = [
                          'ac'
                        ],
             'change' => -2,
+            'dHist' => '2h4h6d8s',
             'hist' => '2h4h/9h2dddac',
             'pos' => 1,
             'preDealRC' => 19,
@@ -2242,6 +2328,7 @@ $VAR1 = [
                          'kh'
                        ],
             'change' => -1,
+            'dHist' => '2h4h6d8s',
             'hist' => '2h4h/7c5ckh',
             'pos' => 0,
             'preDealRC' => 19,
@@ -2265,6 +2352,7 @@ $VAR1 = [
                          '9d'
                        ],
             'change' => 1,
+            'dHist' => '4h8s3cks',
             'hist' => '4h8s/6d6dsp6d9d',
             'pos' => 0,
             'preDealRC' => 23,
@@ -2281,6 +2369,7 @@ $VAR1 = [
                          '7s'
                        ],
             'change' => 1,
+            'dHist' => '4h8s3cks',
             'hist' => '4h8s/6d6dsp6d7s',
             'pos' => 0,
             'preDealRC' => 23,
@@ -2298,6 +2387,7 @@ $VAR1 = [
                          'ac'
                        ],
             'change' => 2,
+            'dHist' => '4h8s3cks',
             'hist' => '4h8s/9c2dddac',
             'pos' => 1,
             'preDealRC' => 23,
@@ -2323,6 +2413,7 @@ $VAR1 = [
                          '7d'
                        ],
             'change' => -1,
+            'dHist' => '6h7h4c',
             'hist' => '6h7h/9c7d',
             'pos' => 0,
             'preDealRC' => 27,
@@ -2340,6 +2431,7 @@ $VAR1 = [
                          'ah'
                        ],
             'change' => -2,
+            'dHist' => '6h7h4c',
             'hist' => '6h7h/8d3cddah',
             'pos' => 1,
             'preDealRC' => 27,
