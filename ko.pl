@@ -617,7 +617,7 @@ sub generate {
     push @textTable,"h15   s  s  s  s  s  h  h  h su  h";
     push @textTable,"h14   s  s  s  s  s  h  h  h  h  h";
     push @textTable,"h13   s  s  s  s  s  h  h  h  h  h";
-    push @textTable,"h12   s  s  s  s  s  h  h  h  h  h";
+    push @textTable,"h12   h  h  s  s  s  h  h  h  h  h";
     push @textTable," 11  dh dh dh dh dh dh dh dh dh  h";
     push @textTable," 10  dh dh dh dh dh dh dh dh  h  h";
     push @textTable,"  9   h dh dh dh dh  h  h  h  h  h";
@@ -787,7 +787,7 @@ sub isBusted {
 #h15    s  s  s  s  s  h  h  h su  h
 #h14    s  s  s  s  s  h  h  h  h  h
 #h13    s  s  s  s  s  h  h  h  h  h
-#h12    s  s  s  s  s  h  h  h  h  h
+#h12    h  h  s  s  s  h  h  h  h  h
 #11    dh dh dh dh dh dh dh dh dh  h
 #10    dh dh dh dh dh dh dh dh  h  h
 # 9     h dh dh dh dh  h  h  h  h  h
