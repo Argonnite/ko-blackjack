@@ -9,10 +9,10 @@ my $DEBUG = 1;
 #FIXME: test nsa==1 and aa.
 
 
-#my $nDecks = 8;      # size of shoe
-#my $cut = 1;         # penetration in number of decks unseen
-my $nDecks = 1;      # size of shoe
-my $cut = 0.4;       # penetration in number of decks unseen
+my $nDecks = 8;      # size of shoe
+my $cut = 1;         # penetration in number of decks unseen
+#my $nDecks = 1;      # size of shoe
+#my $cut = 0.4;       # penetration in number of decks unseen
 my $nShoesToRun = 1; # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
 my $spreadMax;
@@ -55,13 +55,13 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my @discards = ();
 
 
-#    if($DEBUG) {
-#    ### load a test
-###	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); I> };
-###	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); I> };
-#    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I>};
-#    eval $command;
-#    }
+    if($DEBUG) {
+    ### load a test
+##	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); I> };
+##	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); I> };
+    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I>};
+    eval $command;
+    }
 
 
     if($DEBUG) {
@@ -123,8 +123,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                 my $hand = shift @places;
                 my $action;
 
-                my $preActionRC = 4 * $nDecks - KOValAry(\@deck);
-                $hand->{'preActionRC'} = $preActionRC;
+                my $prePlayerActionRC = 4 * $nDecks - KOValAry(\@deck);
+                $hand->{'prePlayerActionRC'} = $prePlayerActionRC;
 
 
                 ## splits handling
@@ -423,16 +423,29 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
             foreach my $patHand (@patPlaces) {
                 my @tmp = getTotals($patHand->{'cards'});
                 my $pTot = bestTotal(\@tmp);
-                if($pTot > $dealerBest) {
-                    if(isNatural($patHand->{'cards'})) {
+
+                if(isNatural($patHand->{'cards'})) { #two-card 21
+                    if($splitsCnt[$patHand->{'pos'}] == 0) {  #ensuring it's not a fake "split" bj
                         $patHand->{'change'} = $bjPayout * $patHand->{'bet'};
                     } else {
-                        $patHand->{'change'} = $patHand->{'bet'};
+			if($pTot > $dealerBest) {
+			    $patHand->{'change'} = $patHand->{'bet'};
+			} elsif($pTot < $dealerBest) {
+			    $patHand->{'change'} = -$patHand->{'bet'};
+			    print "ERROR: impossibility\n";
+			    exit(1);
+			} else { # push on dealer non-bj 21 here.
+			    $patHand->{'change'} = 0;
+			}
                     }
-                } elsif($pTot < $dealerBest) {
-                    $patHand->{'change'} = -$patHand->{'bet'};
                 } else {
-                    $patHand->{'change'} = 0;
+			if($pTot > $dealerBest) {
+			    $patHand->{'change'} = $patHand->{'bet'};
+			} elsif($pTot < $dealerBest) {
+			    $patHand->{'change'} = -$patHand->{'bet'};
+			} else {
+			    $patHand->{'change'} = 0;
+			}
                 }
             }
         }
