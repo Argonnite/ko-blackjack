@@ -2140,7 +2140,7 @@ $VAR1 = [
                          '7s',
                          'qs'
                        ],
-            'change' => 1,
+            'change' => -1,
             'hist' => 'adjc/7sqs',
             'pos' => 0,
             'preDealRC' => 19,
@@ -2155,7 +2155,7 @@ $VAR1 = [
                          '5s',
                          '4d'
                        ],
-            'change' => 1,
+            'change' => -1,
             'hist' => 'adjc/5s4d',
             'pos' => 1,
             'preDealRC' => 19,

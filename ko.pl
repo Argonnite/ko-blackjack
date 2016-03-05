@@ -117,7 +117,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         if(isNatural(\@dealer)) { #process dealer bj.
             @patPlaces = @places;
             @places = ();
-            $bDealerHasBJ = 0;
+            $bDealerHasBJ = 1;
         } else {#handle player actions normally.
             while (scalar @places) {
                 my $hand = shift @places;
@@ -400,7 +400,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         }
 
         ## determine winners.
-#FIXME: NEW DEAL 40 bug here?
         if($bDealerHasBJ == 1) {
             foreach my $patHand (@patPlaces) {
                 if(isNatural($patHand->{'cards'})) {
