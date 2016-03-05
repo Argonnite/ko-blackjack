@@ -50,7 +50,9 @@ generate(\%table); ### basic strategy
 #timestamp
 #}
 
-#FIXME: save a timestamp here.
+
+###save a timestamp here.
+my $launched_timestamp = localtime(time);
 
 for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
