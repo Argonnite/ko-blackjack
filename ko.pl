@@ -3,7 +3,7 @@ use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
 $Data::Dumper::Sortkeys = 1;
 
-my $DEBUG = 1;
+my $DEBUG = 0;
 my $LOG = 1;
 
 #FIXME: create a param object.
@@ -14,10 +14,10 @@ my $nDecks = 8;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
 #my $nDecks = 1;      # size of shoe
 #my $cut = 0.4;       # penetration in number of decks unseen
-my $nShoesToRun = 1; # number of shoes to simulate
+my $nShoesToRun = 2000; # number of shoes to simulate
 my $spreadMin;       # limits on the betting spread
 my $spreadMax;
-my $spotsLimit = 2;  # number of those seated
+my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
 my $rsa = 1;         # resplit aces allowed
@@ -135,6 +135,10 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
             @patPlaces = @places;
             @places = ();
             $bDealerHasBJ = 1;
+            foreach my $hand (@patPlaces) {
+                my $prePlayerActionRC = 4 * $nDecks - KOValAry(\@deck);
+                $hand->{'prePlayerActionRC'} = $prePlayerActionRC;
+            }
         } else {#handle player actions normally.
             while (scalar @places) {
                 my $hand = shift @places;
