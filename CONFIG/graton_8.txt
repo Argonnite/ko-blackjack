@@ -1,0 +1,17 @@
+my $nDecks = 8;      # size of shoe
+my $cut = 1;         # penetration in number of decks unseen
+my $nShoesToRun = 10000; # number of shoes to simulate
+my $spotsLimit = 1;  # number of those seated
+my $esAllowed = 0;   # early surrender
+my $lsAllowed = 0;   # late surrender
+my $rsa = 1;         # resplit aces allowed
+my $rsa3 = 1;        # resplit aces once
+my $rs3 = 1;         # resplit once more
+my $das = 0;         # doubling after splitting aces
+my $ds = 1;          # doubling after splitting
+my $da = 1;          # double down on any two cards
+my $hsa = 0;         # can hit after splitting aces
+my $nsa = 0;         # no splitting of aces
+my $nrs = 0;         # no resplitting
+my $h17 = 1;         # dealer hits soft 17
+my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
