@@ -4,7 +4,7 @@ use Scalar::Util qw/looks_like_number/;
 $Data::Dumper::Sortkeys = 1;
 
 my $DEBUG = 1;
-my $CSVOUTPUT = 0;
+my $LOG = 1;
 
 #FIXME: create a param object.
 #FIXME: test nsa==1 and aa.
@@ -37,22 +37,24 @@ my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
 my %table = ();
 generate(\%table); ### basic strategy
 
-#if($CSVOUTPUT) {
-#change
-#hist
-#pos
-#preDealRC
-#prePlayerActionRC
-#round
-#shoe
-#splitID
-#dealerHist
-#timestamp
-#}
+my $fh;
+if($LOG) {
+    open($fh,'>','log.csv') or die "Could not open file.\n";
+    print $fh "timestamp,";
+    print $fh "change,";
+    print $fh "hist,";
+    print $fh "pos,";
+    print $fh "preDealRC,";
+    print $fh "prePlayerActionRC,";
+    print $fh "round,";
+    print $fh "shoe,";
+    print $fh "splitID,";
+    print $fh "dealerHist\n";
+}
 
 
 ###save a timestamp here.
-my $launched_timestamp = localtime(time);
+my $timestamp = localtime(time);
 
 for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
@@ -470,7 +472,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 
 
-	### preserce dealer hist.
+	### preserve dealer hist.
 	my $dealerHist = join('',@dealer);
 	foreach my $playerHand (@patPlaces) {
 	    $playerHand->{'dHist'} = $dealerHist;
@@ -490,9 +492,44 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
             print "STUBSIZE: " . scalar @deck . " (" . (scalar @deck)/(52.0*$nDecks) . ")\n";
         }
 
+
+
+
+	if($LOG) {
+
+	    foreach my $playerHand (@patPlaces) {
+		my $change = $playerHand->{'change'};
+		my $hist = $playerHand->{'hist'};
+		my $pos = $playerHand->{'pos'};
+		my $preDealRC = $playerHand->{'preDealRC'};
+		my $prePlayerActionRC = $playerHand->{'prePlayerActionRC'};
+		my $round = $playerHand->{'round'};
+		my $shoe = $playerHand->{'shoe'};
+		my $splitID = $playerHand->{'splitID'};
+		my $dealerHist = $playerHand->{'dealerHist'};
+
+
+
+
+		print $fh "$timestamp,";
+		print $fh "$change,";
+		print $fh "$hist,";
+		print $fh "$pos,";
+		print $fh "$preDealRC,";
+		print $fh "$prePlayerActionRC,";
+		print $fh "$round,";
+		print $fh "$shoe,";
+		print $fh "$splitID,";
+		print $fh "$dealerHist\n";
+	    }
+	    foreach my $playerHand (@bustedPlaces) {
+		$playerHand->{'dHist'} = $dealerHist;
+	    }
+	}
         ++$nRound;
     }
 }
+close($fh);
 
 
 
