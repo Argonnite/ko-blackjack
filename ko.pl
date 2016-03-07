@@ -47,8 +47,8 @@ if($LOG) {
     print $fh "pos,";
     print $fh "preDealRC,";
     print $fh "prePlayerActionRC,";
-    print $fh "round,";
     print $fh "shoe,";
+    print $fh "round,";
     print $fh "splitID,";
     print $fh "dealerHist\n";
 }
@@ -72,13 +72,13 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my @discards = ();
 
 
-    if($DEBUG) {
-    ### load a test
-##	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); I> };
-##	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); I> };
-    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I>};
-    eval $command;
-    }
+#    if($DEBUG) {
+#    ### load a test
+###	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); I> };
+###	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); I> };
+#    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I>};
+#    eval $command;
+#    }
 
 
     if($DEBUG) {
@@ -530,8 +530,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                 print $fh "$pos,";
                 print $fh "$preDealRC,";
                 print $fh "$prePlayerActionRC,";
-                print $fh "$round,";
                 print $fh "$shoe,";
+                print $fh "$round,";
                 print $fh "$splitID,";
                 print $fh "$dealerHist\n";
             }
