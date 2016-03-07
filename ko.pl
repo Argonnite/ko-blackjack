@@ -9,19 +9,14 @@ my $LOG = 1;
 #FIXME: create a param object.
 #FIXME: test nsa==1 and aa.
 
-
-my $nDecks = 8;      # size of shoe
+### load config
+my $nDecks = 2;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
-#my $nDecks = 1;      # size of shoe
-#my $cut = 0.4;       # penetration in number of decks unseen
-my $nShoesToRun = 2000; # number of shoes to simulate
-my $spreadMin;       # limits on the betting spread
-my $spreadMax;
+my $nShoesToRun = 200000; # number of shoes to simulate
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
 my $rsa = 1;         # resplit aces allowed
-my $rs = 0;          # resplit any allowed
 my $rsa3 = 1;        # resplit aces once
 my $rs3 = 1;         # resplit once more
 my $das = 0;         # doubling after splitting aces
@@ -31,11 +26,13 @@ my $hsa = 0;         # can hit after splitting aces
 my $nsa = 0;         # no splitting of aces
 my $nrs = 0;         # no resplitting
 my $h17 = 1;         # dealer hits soft 17
-my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
+my $bjPayout = 1.2;  # blackjack pays either 6:5 or 3:2
+
 
 
 my %table = ();
 generate(\%table); ### basic strategy
+
 
 my $fh;
 if($LOG) {
@@ -52,6 +49,10 @@ if($LOG) {
     print $fh "splitID,";
     print $fh "dealerHist\n";
 }
+
+
+my %totChange;
+my %sampleSize;
 
 
 for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
@@ -72,13 +73,11 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     my @discards = ();
 
 
-#    if($DEBUG) {
-#    ### load a test
-###	my $command = do { local $/; open(I,'TESTS/sp_line3_test1.txt'); I> };
-###	my $command = do { local $/; open(I,'TESTS/dd_line6_test1.txt'); I> };
-#    my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I>};
-#    eval $command;
-#    }
+    if($DEBUG) {
+        ### load a test
+        my $command = do { local $/; open(I,'TESTS/current_bug.txt'); <I>};
+        eval $command;
+    }
 
 
     if($DEBUG) {
@@ -495,8 +494,6 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         }
 
 
-
-
         if($LOG) {
             my @allPlaces = (@patPlaces,@bustedPlaces);
 
@@ -538,6 +535,9 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                 print $fh "$round,";
                 print $fh "$splitID,";
                 print $fh "$dealerHist\n";
+
+                $totChange{$preDealRC} += $change;
+                $sampleSize{$preDealRC} += 1;
             }
         }
         ++$nRound;
@@ -546,7 +546,19 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 close($fh);
 
+if($LOG) {
+    ### get RC freqs.
+    my $nHands = 0;
+    foreach my $rc (keys (%totChange)) {
+        $nHands += $sampleSize{$rc};
+    }
 
+
+
+    foreach my $rc (sort keys (%totChange)) {
+        print "$rc,$totChange{$rc},$sampleSize{$rc}," . $totChange{$rc}/$sampleSize{$rc} . "," . $sampleSize{$rc}/$nHands . "\n";
+    }
+}
 
 
 
