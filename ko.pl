@@ -40,7 +40,8 @@ generate(\%table); ### basic strategy
 my $fh;
 if($LOG) {
     open($fh,'>','log.csv') or die "Could not open file.\n";
-    print $fh "timestamp,";
+    print $fh "row,";
+    print $fh "col,";
     print $fh "change,";
     print $fh "hist,";
     print $fh "pos,";
@@ -52,9 +53,6 @@ if($LOG) {
     print $fh "dealerHist\n";
 }
 
-
-###save a timestamp here.
-my $timestamp = localtime(time);
 
 for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
@@ -111,7 +109,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         my $bet = 1;
         my @splitsCnt;
         my $surrenderRC;
-        if(getRank($dealer[0] eq 'a')) {
+        if(getRank($dealer[0]) eq 'a') {
             $surrenderRC = $preDealRC - 1;
         }
 
@@ -448,38 +446,38 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                     if($splitsCnt[$patHand->{'pos'}] == 0) {  #ensuring it's not a fake "split" bj
                         $patHand->{'change'} = $bjPayout * $patHand->{'bet'};
                     } else {
-			if($pTot > $dealerBest) {
-			    $patHand->{'change'} = $patHand->{'bet'};
-			} elsif($pTot < $dealerBest) {
-			    $patHand->{'change'} = -$patHand->{'bet'};
-			    print "ERROR: impossibility\n";
-			    exit(1);
-			} else { # push on dealer non-bj 21 here.
-			    $patHand->{'change'} = 0;
-			}
+                        if($pTot > $dealerBest) {
+                            $patHand->{'change'} = $patHand->{'bet'};
+                        } elsif($pTot < $dealerBest) {
+                            $patHand->{'change'} = -$patHand->{'bet'};
+                            print "ERROR: impossibility\n";
+                            exit(1);
+                        } else { # push on dealer non-bj 21 here.
+                            $patHand->{'change'} = 0;
+                        }
                     }
                 } else {
-		    if($pTot > $dealerBest) {
-			$patHand->{'change'} = $patHand->{'bet'};
-		    } elsif($pTot < $dealerBest) {
-			$patHand->{'change'} = -$patHand->{'bet'};
-		    } else {
-			$patHand->{'change'} = 0;
-		    }
+                    if($pTot > $dealerBest) {
+                        $patHand->{'change'} = $patHand->{'bet'};
+                    } elsif($pTot < $dealerBest) {
+                        $patHand->{'change'} = -$patHand->{'bet'};
+                    } else {
+                        $patHand->{'change'} = 0;
+                    }
                 }
             }
         }
+        
 
 
-
-	### preserve dealer hist.
-	my $dealerHist = join('',@dealer);
-	foreach my $playerHand (@patPlaces) {
-	    $playerHand->{'dHist'} = $dealerHist;
-	}
-	foreach my $playerHand (@bustedPlaces) {
-	    $playerHand->{'dHist'} = $dealerHist;
-	}
+        ### preserve dealer hist.
+        my $dealerHist = join('',@dealer);
+        foreach my $playerHand (@patPlaces) {
+            $playerHand->{'dHist'} = $dealerHist;
+        }
+        foreach my $playerHand (@bustedPlaces) {
+            $playerHand->{'dHist'} = $dealerHist;
+        }
 
 
 
@@ -495,40 +493,53 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
 
 
 
-	if($LOG) {
+        if($LOG) {
+            my @allPlaces = (@patPlaces,@bustedPlaces);
 
-	    foreach my $playerHand (@patPlaces) {
-		my $change = $playerHand->{'change'};
-		my $hist = $playerHand->{'hist'};
-		my $pos = $playerHand->{'pos'};
-		my $preDealRC = $playerHand->{'preDealRC'};
-		my $prePlayerActionRC = $playerHand->{'prePlayerActionRC'};
-		my $round = $playerHand->{'round'};
-		my $shoe = $playerHand->{'shoe'};
-		my $splitID = $playerHand->{'splitID'};
-		my $dealerHist = $playerHand->{'dealerHist'};
+            foreach my $playerHand (@allPlaces) {
+                my $change = $playerHand->{'change'};
+                my $hist = $playerHand->{'hist'};
+                my $pos = $playerHand->{'pos'};
+                my $preDealRC = $playerHand->{'preDealRC'};
+                my $prePlayerActionRC = $playerHand->{'prePlayerActionRC'};
+                my $round = $playerHand->{'round'};
+                my $shoe = $playerHand->{'shoe'};
+                my $splitID = $playerHand->{'splitID'};
+                my $dealerHist = $playerHand->{'dHist'};
+
+                my @pStarters = @{$playerHand->{'cards'}}[0..1]; 
+                my @pStartTotals = getTotals(\@pStarters);
+                my $pSum = bestTotal(\@pStartTotals);
 
 
+                my $row;
+                if(isPair(\@pStarters)) {
+                    $row = getRank($playerHand->{'cards'}->[0]) . getRank($playerHand->{'cards'}->[1]);
+                } elsif(isSoft(\@pStarters)) {
+                    $row = 's' . $pSum;
+                } else {
+                    $row = $pSum;
+                }
+                my $col;
+                $col = getRank($dealer[0]);
 
-
-		print $fh "$timestamp,";
-		print $fh "$change,";
-		print $fh "$hist,";
-		print $fh "$pos,";
-		print $fh "$preDealRC,";
-		print $fh "$prePlayerActionRC,";
-		print $fh "$round,";
-		print $fh "$shoe,";
-		print $fh "$splitID,";
-		print $fh "$dealerHist\n";
-	    }
-	    foreach my $playerHand (@bustedPlaces) {
-		$playerHand->{'dHist'} = $dealerHist;
-	    }
-	}
+                print $fh "$row,";
+                print $fh "$col,";
+                print $fh "$change,";
+                print $fh "$hist,";
+                print $fh "$pos,";
+                print $fh "$preDealRC,";
+                print $fh "$prePlayerActionRC,";
+                print $fh "$round,";
+                print $fh "$shoe,";
+                print $fh "$splitID,";
+                print $fh "$dealerHist\n";
+            }
+        }
         ++$nRound;
     }
 }
+
 close($fh);
 
 
@@ -632,9 +643,9 @@ sub isAce {
 sub getRank {
     my $input = substr(shift(@_),0,1);
     if($input =~ /[kqjt]/) {
-	return 't';
+        return 't';
     } else {
-	return $input;
+        return $input;
     }
 }
 
@@ -735,12 +746,12 @@ sub bestTotal {
     my $totals = shift(@_);
     my $bestTotal = -1;
     foreach my $total (@{$totals}) {
-	if($total > $bestTotal && $total < 22) {
-	    $bestTotal = $total;
-	}
+        if($total > $bestTotal && $total < 22) {
+            $bestTotal = $total;
+        }
     }
     return $bestTotal;
- }
+}
 
 
 ###sub isSoft
