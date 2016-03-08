@@ -1,6 +1,6 @@
 my $nDecks = 2;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
-my $nShoesToRun = 200000; # number of shoes to simulate
+my $nShoesToRun = 800000; # number of shoes to simulate
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
