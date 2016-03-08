@@ -6,13 +6,15 @@ $Data::Dumper::Sortkeys = 1;
 my $DEBUG = 0;
 my $LOG = 1;
 
+
 #FIXME: create a param object.
 #FIXME: test nsa==1 and aa.
 
 ### load config
-my $nDecks = 2;      # size of shoe
+my $nDecks = 8;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
-my $nShoesToRun = 2; # number of shoes to simulate (def 80K)
+my $nShoesToRun = 100; # number of shoes to simulate (38 mins for 40K)
+#my $rigRC = 35;      # 1.5 min for 100 @ rig RC=35
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
@@ -26,7 +28,7 @@ my $hsa = 0;         # can hit after splitting aces
 my $nsa = 0;         # no splitting of aces
 my $nrs = 0;         # no resplitting
 my $h17 = 1;         # dealer hits soft 17
-my $bjPayout = 1.2;  # blackjack pays either 6:5 or 3:2
+my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
 
 
 
@@ -71,6 +73,12 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
     }
     @deck = shuffle @deck;
     my @discards = ();
+
+
+
+    if(defined $rigRC) {
+        rigDeck(\@deck,$nDecks,$rigRC);
+    }
 
 
     if($DEBUG) {
@@ -541,6 +549,9 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
             }
         }
         ++$nRound;
+        if(defined $rigRC) {
+            @deck = ();
+        }
     }
 }
 close($fh);
@@ -564,6 +575,27 @@ if($LOG) {
 
 
 ##################################################################
+
+### sub rigDeck
+sub rigDeck {
+    (my $deckRef, my $nDecks, my $targetRC) = @_;
+    my $achievedRC = 4 * $nDecks - KOValAry($deckRef);
+    my @discards;
+    my $tries = 0;
+
+    while($achievedRC != $targetRC and scalar @{$deckRef} > 0) {
+        unshift @discards,shift @{$deckRef};
+        $achievedRC = 4 * $nDecks - KOValAry($deckRef);
+        if(scalar @{$deckRef} <= 0 and $achievedRC != $targetRC) {
+            @{$deckRef} = shuffle @discards;
+            ++$tries;
+            if($tries >= 500) {
+                print "ERROR: couldn't meet count = $targetRC\n";
+                exit(1);
+            }
+        }
+    }
+}
 
 ### sub getAction
 sub getAction {
