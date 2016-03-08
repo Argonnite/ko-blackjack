@@ -12,7 +12,7 @@ my $LOG = 1;
 ### load config
 my $nDecks = 2;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
-my $nShoesToRun = 800000; # number of shoes to simulate
+my $nShoesToRun = 2; # number of shoes to simulate (def 80K)
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
@@ -543,8 +543,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
         ++$nRound;
     }
 }
-
 close($fh);
+
 
 if($LOG) {
     ### get RC freqs.
@@ -554,12 +554,13 @@ if($LOG) {
     }
 
 
-
+    open(my $fh2,'>','trend.csv') or die "Could not open file.\n";
+    print $fh2 "rc,totChange,sampleSize,normalized totChange,percent RC occurrence\n";
     foreach my $rc (sort keys (%totChange)) {
-        print "$rc,$totChange{$rc},$sampleSize{$rc}," . $totChange{$rc}/$sampleSize{$rc} . "," . $sampleSize{$rc}/$nHands . "\n";
+        print $fh2 "$rc,$totChange{$rc},$sampleSize{$rc}," . $totChange{$rc}/$sampleSize{$rc} . "," . $sampleSize{$rc}/$nHands . "\n";
     }
+    close($fh2);
 }
-
 
 
 ##################################################################
