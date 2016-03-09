@@ -13,8 +13,8 @@ my $LOG = 1;
 ### load config
 my $nDecks = 8;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
-my $nShoesToRun = 100; # number of shoes to simulate (38 mins for 40K)
-#my $rigRC = 35;      # 1.5 min for 100 @ rig RC=35
+my $nShoesToRun = 10000; # number of shoes to simulate (38 mins for 40K)
+#my $rigRC = 40;      # 1.5 min for 100 @ rig RC=35
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
