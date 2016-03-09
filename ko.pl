@@ -11,10 +11,11 @@ my $LOG = 1;
 #FIXME: test nsa==1 and aa.
 
 ### load config
-my $nDecks = 8;      # size of shoe
+my $nDecks = 2;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
-my $nShoesToRun = 80000; # number of shoes to simulate (38 mins for 40K)
-#my $rigRC = 40;      # 1.5 min for 100 @ rig RC=35
+my $nShoesToRun = 800000; # number of shoes to simulate
+#FIXME: below still borken
+#my $rigRC = 15;  # hit this or higher
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
@@ -28,7 +29,7 @@ my $hsa = 0;         # can hit after splitting aces
 my $nsa = 0;         # no splitting of aces
 my $nrs = 0;         # no resplitting
 my $h17 = 1;         # dealer hits soft 17
-my $bjPayout = 1.5;  # blackjack pays either 6:5 or 3:2
+my $bjPayout = 1.2;  # blackjack pays either 6:5 or 3:2
 
 
 
@@ -583,11 +584,12 @@ sub rigDeck {
     my @discards;
     my $tries = 0;
 
-    while($achievedRC != $targetRC and scalar @{$deckRef} > 0) {
+    while($achievedRC < $targetRC and scalar @{$deckRef} > 0) {
         unshift @discards,shift @{$deckRef};
         $achievedRC = 4 * $nDecks - KOValAry($deckRef);
-        if(scalar @{$deckRef} <= 0 and $achievedRC != $targetRC) {
+        if(scalar @{$deckRef} <= 0 and $achievedRC < $targetRC) {
             @{$deckRef} = shuffle @discards;
+            @discards = ();
             ++$tries;
             if($tries >= 500) {
                 print "ERROR: couldn't meet count = $targetRC\n";
