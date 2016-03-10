@@ -40,8 +40,8 @@ generate(\%table); ### basic strategy
 my $fh;
 if($LOG) {
     open($fh,'>','log.csv') or die "Could not open file.\n";
-    print $fh "row,";
-    print $fh "col,";
+    print $fh "table_row,";
+    print $fh "table_col,";
     print $fh "change,";
     print $fh "hist,";
     print $fh "pos,";
