@@ -6,6 +6,9 @@ $Data::Dumper::Sortkeys = 1;
 my $DEBUG = 0;
 my $LOG = 1;
 
+my $logdate = `date -I`;
+chomp($logdate);
+
 
 #FIXME: create a param object.
 #FIXME: test nsa==1 and aa.
@@ -14,8 +17,7 @@ my $LOG = 1;
 my $nDecks = 2;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
 my $nShoesToRun = 800000; # number of shoes to simulate
-#FIXME: below still borken
-#my $rigRC = 15;  # hit this or higher
+#my $rigRC = 10;
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
 my $lsAllowed = 0;   # late surrender
@@ -40,6 +42,7 @@ generate(\%table); ### basic strategy
 my $fh;
 if($LOG) {
     open($fh,'>','log.csv') or die "Could not open file.\n";
+    print $fh "logdate,";
     print $fh "table_row,";
     print $fh "table_col,";
     print $fh "change,";
@@ -533,6 +536,7 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                 my $col;
                 $col = getRank($dealer[0]);
 
+                print $fh "$logdate,";
                 print $fh "$row,";
                 print $fh "$col,";
                 print $fh "$change,";
@@ -567,9 +571,9 @@ if($LOG) {
 
 
     open(my $fh2,'>','trend.csv') or die "Could not open file.\n";
-    print $fh2 "rc,totChange,sampleSize,normalized totChange,percent RC occurrence\n";
+    print $fh2 "logdate,rc,totChange,sampleSize,normalized totChange,percent RC occurrence\n";
     foreach my $rc (sort keys (%totChange)) {
-        print $fh2 "$rc,$totChange{$rc},$sampleSize{$rc}," . $totChange{$rc}/$sampleSize{$rc} . "," . $sampleSize{$rc}/$nHands . "\n";
+        print $fh2 "$logdate,$rc,$totChange{$rc},$sampleSize{$rc}," . $totChange{$rc}/$sampleSize{$rc} . "," . $sampleSize{$rc}/$nHands . "\n";
     }
     close($fh2);
 }
