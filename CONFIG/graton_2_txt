@@ -1,5 +1,6 @@
 my $nDecks = 2;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
+my $csm = 0;
 my $nShoesToRun = 800000; # number of shoes to simulate
 #my $rigRC = 10;
 my $spotsLimit = 1;  # number of those seated
