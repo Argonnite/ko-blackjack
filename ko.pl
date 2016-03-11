@@ -16,8 +16,8 @@ chomp($logdate);
 ### load config
 my $nDecks = 8;      # size of shoe
 my $cut = 1;         # penetration in number of decks unseen
-my $csm = 1;         # overrides $cut.
-my $nShoesToRun = 800000; # number of shoes to simulate (38 mins for 40K)
+my $csm = 0;
+my $nShoesToRun = 80000; # number of shoes to simulate (38 mins for 40K)
 #my $rigRC = 40;      # 1.5 min for 100 @ rig RC=35
 my $spotsLimit = 1;  # number of those seated
 my $esAllowed = 0;   # early surrender
@@ -261,7 +261,10 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                                 #split, unshift new, incr splitsCnt, goto decision
                                 ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
                                 ++$splitsCnt[$hand->{'pos'}];
+#FIXME: need to do this for all other splitting situations, otherwise 88 in $hand gets ignored.
                                 unshift @places,$newSpotRef;
+                                unshift @places,$hand;
+                                undef $hand;
                             } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 1) {
                                 #line 24
                                 #split, unshift new, incr splitsCnt, goto decision
@@ -275,6 +278,8 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                                 #line 26
                                 #ERROR
                             } else {
+                                print "line 26 failthrough\n";
+                                exit(1);
                                 #FAILTHROUGH
                             }
                         }
