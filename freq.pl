@@ -4,9 +4,8 @@ use Data::Dumper;
 
 #TODO: passline odds.
 
-my $filename = 'blah.csv';
-
-open(my $fh, '<', $filename) or die "Can't open $!";
+#my $filename = 'blah.csv';
+#open(my $fh, '<', $filename) or die "Can't open $!";
 
 my %hist;
 my $n = 0;
