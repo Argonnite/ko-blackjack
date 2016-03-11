@@ -45,7 +45,7 @@ if($LOG) {
     print $fh "logdate,";
     print $fh "table_row,";
     print $fh "table_col,";
-    print $fh "change,";
+    print $fh "br_change,";
     print $fh "hist,";
     print $fh "pos,";
     print $fh "preDealRC,";
