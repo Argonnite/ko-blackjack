@@ -42,6 +42,7 @@ generate(\%table); ### basic strategy
 
 my $fh;
 if($LOG) {
+    unlink 'log.csv';
     open($fh,'>','log.csv') or die "Could not open file.\n";
     print $fh "logdate,";
     print $fh "table_row,";
@@ -196,16 +197,32 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                                     #split, unshift new, pat current
                                     ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
                                     ++$splitsCnt[$hand->{'pos'}];
-                                    unshift @places,$newSpotRef;
-                                    push @patPlaces,$hand; # "current" is now pat.
+                                    if(isPair($newSpotRef->{'cards'})) {
+                                        unshift @places,$newSpotRef; # new hand is a pair again.
+                                    } else {
+                                        push @patPlaces,$newSpotRef; # "current" is now pat.
+                                    }
+                                    if(isPair($hand->{'cards'})) {
+                                        unshift @places,$hand; # new hand is a pair again.
+                                    } else {
+                                        push @patPlaces,$hand; # "current" is now pat.
+                                    }
                                     undef $hand;
                                 } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && ($splitsCnt[$hand->{'pos'}] == 0 || $splitsCnt[$hand->{'pos'}] == 1)) {
                                     #line 9
                                     #split, unshift new, incr splitsCnt, pat current
                                     ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
                                     ++$splitsCnt[$hand->{'pos'}];
-                                    unshift @places,$newSpotRef;
-                                    push @patPlaces,$hand; # "current" is now pat.
+                                    if(isPair($newSpotRef->{'cards'})) {
+                                        unshift @places,$newSpotRef; # new hand is a pair again.
+                                    } else {
+                                        push @patPlaces,$newSpotRef; # "current" is now pat.
+                                    }
+                                    if(isPair($hand->{'cards'})) {
+                                        unshift @places,$hand; # new hand is a pair again.
+                                    } else {
+                                        push @patPlaces,$hand; # "current" is now pat.
+                                    }
                                     undef $hand;
                                 } elsif($hsa == 0 && $rsa == 1 && $rsa3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
                                     #line 10
@@ -270,7 +287,10 @@ for(my $nCurrentShoe = 0; $nCurrentShoe < $nShoesToRun; ++$nCurrentShoe) {
                                 #split, unshift new, incr splitsCnt, goto decision
                                 ($hand, my $newSpotRef) = splitHand($hand,\@deck,\@discards);
                                 ++$splitsCnt[$hand->{'pos'}];
+#FIXME: test this fix.
                                 unshift @places,$newSpotRef;
+                                unshift @places,$hand;
+                                undef $hand;
                             } elsif($nrs == 0 && $rs3 == 1 && $splitsCnt[$hand->{'pos'}] == 2) {
                                 #line 25
                                 #goto decision
@@ -576,6 +596,7 @@ if($LOG) {
     }
 
 
+    unlink 'trend.csv';
     open(my $fh2,'>','trend.csv') or die "Could not open file.\n";
     print $fh2 "logdate,rc,totChange,sampleSize,normalized totChange,percent RC occurrence\n";
     foreach my $rc (sort keys (%totChange)) {
