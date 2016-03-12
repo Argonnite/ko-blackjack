@@ -1,11 +1,11 @@
 @deck = (
-          '5h',
-          '7d',
-          '8h',
-          '8h',
-          '8c',
-          '2s',
-          'td',
+          '9d',
+          'ac',
+          'ah',
+          'ad',
+          'as',
+          'as',
+          'qc',
           '6h',
           'tc',
           '4c',
@@ -14,3 +14,6 @@
           'th',
 );
 
+#9dac/ahadspahas
+#9dac/ahadspadasspadqc
+#9dac/ahadspadasspasas
