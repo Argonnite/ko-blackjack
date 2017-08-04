@@ -73,6 +73,10 @@ UI/Forms
   
   Player spots
   
+    Option for NPC spots to come and go dynamically
+    
+    Option for PC to take over spots
+  
   Analysis popups or strategy wizard
   
     Current count
